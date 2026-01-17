@@ -208,21 +208,7 @@ func (h *ProjectHandler) UpdateTranslation(c echo.Context) error {
 		// Validate placeholders
 		baseVal := baseFlat[key]
 		if err := jsontools.ValidatePlaceholders(baseVal, value); err != nil {
-			// Return field with error
-			// Since we want to update the whole field to show error, we need correct hx-swap-oob or just replace the field target?
-			// The current hx-target on input is "previous .translation-label", which is JUST the label.
-			// But for error message we need to show it below input or on input border.
-			// The updated template now renders error message in the field component.
-			// BUT the HTMX request on the input has hx-target="previous .translation-label".
-			// If we return the whole field, HTMX will try to put the whole field INSIDE the label!
-			// We need to change the hx-target if there is an error? Impossible.
-			// We need OOB swap if valid vs invalid?
-
-			// Fix: If we have an error, we want to replace the whole field container to show the error message and red border.
-			// But the input on the page is configured to target THE LABEL.
-
-			// We can use OOB swap to replace the whole field by ID.
-			// field-KEY id is on the wrapper.
+			// interpolated string error here. This works but when redoing it we skip this.
 			c.Response().Header().Set("HX-Retarget", fmt.Sprintf("#field-%s", key))
 			c.Response().Header().Set("HX-Reswap", "outerHTML")
 			c.Response().Header().Set("HX-Reselect", fmt.Sprintf("#field-%s", key)) // Override hx-select to pick the whole field
@@ -242,29 +228,8 @@ func (h *ProjectHandler) UpdateTranslation(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update file"})
 	}
 
-	// Return updated field HTML (just the label part if success, but we can't easily partially render)
-	// Actually, if success, we configured hx-target="previous .translation-label".
-	// The template renders the WHOLE field.
-	// If we return the whole field, it puts the whole field inside the label. BAD.
-
-	// We need to fix the template logic or return logic.
-	// Since we changed hx-target to label, we should theoretically ONLY return the label part on success.
-	// OR we use OOB for everything.
-
 	for key := range req {
-		// On success, we also use OOB to be safe and consistent, OR we assume the template change I made earlier was correct?
-		// Wait, if I changed hx-target to label, but I return pages.TranslationField (whole component),
-		// then yes, it puts the component inside the label. That's a BUG in my previous step that user verified worked?
-		// Ah, previous step I used hx-select=".translation-label".
-		// That SELECTS only the label from the response. So it works!
-
-		// So on success: Return whole field, HTMX picks label, puts in label. Perfect.
-
-		// On ERROR: We want to replace the INPUT (to show red border) AND show error text.
-		// Taking just the label won't show red border on input or error text below it.
-		// So for error, we must replace the WHOLE field.
-		// We can override target using HX-Retarget header!
-
+		// can't we just swap the whole input or div around it? this way we can easily replace old error message.
 		return render(c, pages.TranslationField(key, baseFlat[key], targetFlat[key], projectID, ""))
 	}
 

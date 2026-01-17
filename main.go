@@ -28,7 +28,7 @@ func main() {
 	e := echo.New()
 
 	// ── Global middleware ──────────────────────────────────────────────
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 
 	SetupAssetsRoutes(e)
