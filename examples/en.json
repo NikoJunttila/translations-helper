@@ -1,0 +1,21 @@
+{
+  "app_name": "Translation Editor",
+  "welcome_message": "Welcome back, {user}!",
+  "navigation": {
+    "home": "Home",
+    "projects": "Projects",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "actions": {
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "delete": "Delete Project",
+    "create": "Create New Project"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Operation successful"
+  }
+}

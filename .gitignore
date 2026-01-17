@@ -1,0 +1,5 @@
+.env
+assets/css/output.css
+*_templ.go
+local.db
+translation-editor

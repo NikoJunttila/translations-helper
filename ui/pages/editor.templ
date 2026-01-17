@@ -1,0 +1,166 @@
+package pages
+
+import (
+	"templui/ui/layouts"
+	"templui/internal/models"
+	"fmt"
+)
+
+templ Editor(
+	project *models.Project,
+	sortedKeys []string,
+	baseFlat map[string]string,
+	targetFlat map[string]string,
+	rawJSON string,
+	baseLang string,
+	targetLang string,
+	showingMissingOnly bool,
+) {
+	@layouts.BaseLayout() {
+		<div class="container mx-auto px-4 py-8">
+			<div class="max-w-5xl mx-auto space-y-6">
+				<!-- Header -->
+				<div class="flex justify-between items-center">
+					<div>
+						<h1 class="text-3xl font-bold">{ project.Name }</h1>
+						<p class="text-muted-foreground">
+							{ baseLang } → { targetLang }
+						</p>
+					</div>
+					<div class="flex gap-2">
+						<button
+							onclick="copyLink()"
+							class="px-4 py-2 rounded-lg border border-border hover:border-primary transition flex items-center gap-2"
+						>
+							<span id="share-icon">🔗</span>
+							<span id="share-text">Share</span>
+						</button>
+						<button
+							onclick="document.getElementById('raw-json-modal').showModal()"
+							class="px-4 py-2 rounded-lg border border-border hover:border-primary transition"
+						>
+							View JSON
+						</button>
+						<button
+							hx-get={ fmt.Sprintf("/project/%s/edit?view=full", project.ID) }
+							hx-target="body"
+							hx-swap="outerHTML"
+							hx-push-url="true"
+							class={ "px-4 py-2 rounded-lg border transition", templ.KV("bg-primary text-primary-foreground border-primary", !showingMissingOnly), templ.KV("border-border hover:border-primary", showingMissingOnly) }
+						>
+							Full View
+						</button>
+						<button
+							hx-get={ fmt.Sprintf("/project/%s/edit?view=missing", project.ID) }
+							hx-target="body"
+							hx-swap="outerHTML"
+							hx-push-url="true"
+							class={ "px-4 py-2 rounded-lg border transition", templ.KV("bg-primary text-primary-foreground border-primary", showingMissingOnly), templ.KV("border-border hover:border-primary", !showingMissingOnly) }
+						>
+							Missing Only
+						</button>
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("/api/project/%s/export?lang=%s", project.ID, targetLang)) }
+							download
+							class="px-4 py-2 rounded-lg border border-border hover:border-primary transition"
+						>
+							Export
+						</a>
+					</div>
+				</div>
+
+				<!-- Translation Form -->
+				<div class="card p-6">
+					<form id="translation-form" class="space-y-4">
+						for _, key := range sortedKeys {
+							@translationField(key, baseFlat[key], targetFlat[key], project.ID, "")
+						}
+
+						if len(sortedKeys) == 0 {
+							<div class="text-center py-12 text-muted-foreground">
+								<p class="text-lg">✅ All translations complete!</p>
+							</div>
+						}
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<!-- Raw JSON Modal -->
+		<dialog id="raw-json-modal" class="p-0 rounded-lg backdrop:bg-black/50 w-[800px] max-w-full">
+			<div class="p-6 space-y-4">
+				<div class="flex justify-between items-center">
+					<h3 class="text-lg font-bold">Raw JSON</h3>
+					<button onclick="document.getElementById('raw-json-modal').close()" class="text-muted-foreground hover:text-foreground">✕</button>
+				</div>
+				<pre class="bg-muted p-4 rounded-lg overflow-auto max-h-[60vh] text-sm font-mono">{ rawJSON }</pre>
+				<div class="flex justify-end">
+					<button onclick="document.getElementById('raw-json-modal').close()" class="px-4 py-2 rounded-lg bg-primary text-primary-foreground">Close</button>
+				</div>
+			</div>
+		</dialog>
+
+		<script>
+			function copyLink() {
+				navigator.clipboard.writeText(window.location.href).then(() => {
+					const icon = document.getElementById('share-icon');
+					const text = document.getElementById('share-text');
+					
+					const originalIcon = icon.innerText;
+					const originalText = text.innerText;
+					
+					icon.innerText = '✅';
+					text.innerText = 'Copied!';
+					
+					setTimeout(() => {
+						icon.innerText = originalIcon;
+						text.innerText = originalText;
+					}, 2000);
+				});
+			}
+		</script>
+
+	}
+}
+
+templ translationField(key, baseValue, targetValue, projectID string, errorMessage string) {
+	<div class="translation-item border-b border-border pb-4 last:border-0" id={ "field-" + key }>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label class="block text-xs font-medium text-muted-foreground mb-1">
+					{ key } ({ "Base" })
+				</label>
+				<input
+					type="text"
+					value={ baseValue }
+					disabled
+					class="w-full px-3 py-2 rounded-lg border border-border bg-muted text-muted-foreground"
+				/>
+			</div>
+			<div>
+				<label class="translation-label block text-xs font-medium text-muted-foreground mb-1">
+					Translation
+					if targetValue == "" {
+						<span class="ml-2 px-2 py-0.5 text-xs rounded bg-destructive/20 text-destructive">Missing</span>
+					}
+				</label>
+				<input
+					type="text"
+					name={ key }
+					id={ "input-" + key }
+					value={ targetValue }
+					hx-post={ fmt.Sprintf("/api/project/%s/translations", projectID) }
+					hx-trigger="blur changed"
+					hx-target="previous .translation-label"
+					hx-select=".translation-label"
+					hx-swap="outerHTML"
+					class={ "w-full px-3 py-2 rounded-lg border bg-background focus:outline-none transition", templ.KV("border-destructive ring-1 ring-destructive", errorMessage != ""), templ.KV("border-border focus:border-primary", errorMessage == "") }
+					placeholder="Enter translation..."
+				/>
+				if errorMessage != "" {
+					<p class="mt-1 text-xs text-destructive">{ errorMessage }</p>
+				}
+			</div>
+		</div>
+	</div>
+}

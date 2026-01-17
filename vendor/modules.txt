@@ -1,0 +1,228 @@
+# github.com/Oudwins/tailwind-merge-go v0.2.1
+## explicit; go 1.21.5
+github.com/Oudwins/tailwind-merge-go
+github.com/Oudwins/tailwind-merge-go/pkg/cache
+github.com/Oudwins/tailwind-merge-go/pkg/lru
+github.com/Oudwins/tailwind-merge-go/pkg/twmerge
+# github.com/a-h/parse v0.0.0-20250122154542-74294addb73e
+## explicit; go 1.18
+github.com/a-h/parse
+# github.com/a-h/templ v0.3.977
+## explicit; go 1.23.0
+github.com/a-h/templ
+github.com/a-h/templ/cmd/templ
+github.com/a-h/templ/cmd/templ/fmtcmd
+github.com/a-h/templ/cmd/templ/generatecmd
+github.com/a-h/templ/cmd/templ/generatecmd/modcheck
+github.com/a-h/templ/cmd/templ/generatecmd/proxy
+github.com/a-h/templ/cmd/templ/generatecmd/run
+github.com/a-h/templ/cmd/templ/generatecmd/sse
+github.com/a-h/templ/cmd/templ/generatecmd/watcher
+github.com/a-h/templ/cmd/templ/infocmd
+github.com/a-h/templ/cmd/templ/lspcmd
+github.com/a-h/templ/cmd/templ/lspcmd/httpdebug
+github.com/a-h/templ/cmd/templ/lspcmd/pls
+github.com/a-h/templ/cmd/templ/lspcmd/proxy
+github.com/a-h/templ/cmd/templ/processor
+github.com/a-h/templ/cmd/templ/sloghandler
+github.com/a-h/templ/cmd/templ/visualize
+github.com/a-h/templ/generator
+github.com/a-h/templ/internal/format
+github.com/a-h/templ/internal/htmlfind
+github.com/a-h/templ/internal/imports
+github.com/a-h/templ/internal/lazyloader
+github.com/a-h/templ/internal/prettier
+github.com/a-h/templ/internal/skipdir
+github.com/a-h/templ/internal/syncmap
+github.com/a-h/templ/internal/syncset
+github.com/a-h/templ/lsp/jsonrpc2
+github.com/a-h/templ/lsp/protocol
+github.com/a-h/templ/lsp/uri
+github.com/a-h/templ/lsp/xcontext
+github.com/a-h/templ/parser/v2
+github.com/a-h/templ/parser/v2/goexpression
+github.com/a-h/templ/parser/v2/visitor
+github.com/a-h/templ/runtime
+github.com/a-h/templ/safehtml
+# github.com/andybalholm/brotli v1.2.0
+## explicit; go 1.22
+github.com/andybalholm/brotli
+github.com/andybalholm/brotli/matchfinder
+# github.com/antlr4-go/antlr/v4 v4.13.0
+## explicit; go 1.20
+github.com/antlr4-go/antlr/v4
+# github.com/cenkalti/backoff/v4 v4.3.0
+## explicit; go 1.18
+github.com/cenkalti/backoff/v4
+# github.com/cli/browser v1.3.0
+## explicit; go 1.21
+github.com/cli/browser
+# github.com/coder/websocket v1.8.12
+## explicit; go 1.19
+github.com/coder/websocket
+github.com/coder/websocket/internal/bpool
+github.com/coder/websocket/internal/errd
+github.com/coder/websocket/internal/util
+github.com/coder/websocket/internal/wsjs
+github.com/coder/websocket/internal/xsync
+github.com/coder/websocket/wsjson
+# github.com/dustin/go-humanize v1.0.1
+## explicit; go 1.16
+github.com/dustin/go-humanize
+# github.com/fatih/color v1.16.0
+## explicit; go 1.17
+github.com/fatih/color
+# github.com/fsnotify/fsnotify v1.7.0
+## explicit; go 1.17
+github.com/fsnotify/fsnotify
+# github.com/google/uuid v1.6.0
+## explicit
+github.com/google/uuid
+# github.com/joho/godotenv v1.5.1
+## explicit; go 1.12
+github.com/joho/godotenv
+# github.com/labstack/echo/v4 v4.15.0
+## explicit; go 1.24.0
+github.com/labstack/echo/v4
+github.com/labstack/echo/v4/middleware
+# github.com/labstack/gommon v0.4.2
+## explicit; go 1.18
+github.com/labstack/gommon/bytes
+github.com/labstack/gommon/color
+github.com/labstack/gommon/log
+# github.com/mattn/go-colorable v0.1.14
+## explicit; go 1.18
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.20
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/natefinch/atomic v1.0.1
+## explicit; go 1.12
+github.com/natefinch/atomic
+# github.com/ncruces/go-strftime v1.0.0
+## explicit; go 1.17
+github.com/ncruces/go-strftime
+# github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
+## explicit; go 1.12
+github.com/remyoudompheng/bigfft
+# github.com/tursodatabase/libsql-client-go v0.0.0-20251219100830-236aa1ff8acc
+## explicit; go 1.20
+github.com/tursodatabase/libsql-client-go/libsql
+github.com/tursodatabase/libsql-client-go/libsql/internal/hrana
+github.com/tursodatabase/libsql-client-go/libsql/internal/http
+github.com/tursodatabase/libsql-client-go/libsql/internal/http/hranaV2
+github.com/tursodatabase/libsql-client-go/libsql/internal/http/shared
+github.com/tursodatabase/libsql-client-go/libsql/internal/ws
+github.com/tursodatabase/libsql-client-go/sqliteparser
+github.com/tursodatabase/libsql-client-go/sqliteparserutils
+# github.com/valyala/bytebufferpool v1.0.0
+## explicit
+github.com/valyala/bytebufferpool
+# github.com/valyala/fasttemplate v1.2.2
+## explicit; go 1.12
+github.com/valyala/fasttemplate
+# golang.org/x/crypto v0.46.0
+## explicit; go 1.24.0
+golang.org/x/crypto/acme
+golang.org/x/crypto/acme/autocert
+# golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
+## explicit; go 1.24.0
+golang.org/x/exp/constraints
+golang.org/x/exp/slices
+# golang.org/x/mod v0.30.0
+## explicit; go 1.24.0
+golang.org/x/mod/internal/lazyregexp
+golang.org/x/mod/modfile
+golang.org/x/mod/module
+golang.org/x/mod/semver
+# golang.org/x/net v0.48.0
+## explicit; go 1.24.0
+golang.org/x/net/html
+golang.org/x/net/html/atom
+golang.org/x/net/http/httpguts
+golang.org/x/net/http2
+golang.org/x/net/http2/h2c
+golang.org/x/net/http2/hpack
+golang.org/x/net/idna
+golang.org/x/net/internal/httpcommon
+# golang.org/x/sync v0.19.0
+## explicit; go 1.24.0
+golang.org/x/sync/errgroup
+# golang.org/x/sys v0.39.0
+## explicit; go 1.24.0
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/text v0.32.0
+## explicit; go 1.24.0
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+# golang.org/x/time v0.14.0
+## explicit; go 1.24.0
+golang.org/x/time/rate
+# golang.org/x/tools v0.39.0
+## explicit; go 1.24.0
+golang.org/x/tools/go/ast/astutil
+golang.org/x/tools/go/ast/edge
+golang.org/x/tools/go/ast/inspector
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/packages
+golang.org/x/tools/go/types/objectpath
+golang.org/x/tools/go/types/typeutil
+golang.org/x/tools/imports
+golang.org/x/tools/internal/aliases
+golang.org/x/tools/internal/event
+golang.org/x/tools/internal/event/core
+golang.org/x/tools/internal/event/keys
+golang.org/x/tools/internal/event/label
+golang.org/x/tools/internal/gcimporter
+golang.org/x/tools/internal/gocommand
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/imports
+golang.org/x/tools/internal/modindex
+golang.org/x/tools/internal/packagesinternal
+golang.org/x/tools/internal/pkgbits
+golang.org/x/tools/internal/stdlib
+golang.org/x/tools/internal/typeparams
+golang.org/x/tools/internal/typesinternal
+golang.org/x/tools/internal/versions
+# modernc.org/libc v1.67.6
+## explicit; go 1.24.0
+modernc.org/libc
+modernc.org/libc/errno
+modernc.org/libc/fcntl
+modernc.org/libc/fts
+modernc.org/libc/grp
+modernc.org/libc/honnef.co/go/netdb
+modernc.org/libc/langinfo
+modernc.org/libc/limits
+modernc.org/libc/netdb
+modernc.org/libc/netinet/in
+modernc.org/libc/poll
+modernc.org/libc/pthread
+modernc.org/libc/pwd
+modernc.org/libc/signal
+modernc.org/libc/stdio
+modernc.org/libc/stdlib
+modernc.org/libc/sys/socket
+modernc.org/libc/sys/stat
+modernc.org/libc/sys/types
+modernc.org/libc/termios
+modernc.org/libc/time
+modernc.org/libc/unistd
+modernc.org/libc/utime
+modernc.org/libc/uuid
+modernc.org/libc/uuid/uuid
+modernc.org/libc/wctype
+# modernc.org/mathutil v1.7.1
+## explicit; go 1.21
+modernc.org/mathutil
+# modernc.org/memory v1.11.0
+## explicit; go 1.23.0
+modernc.org/memory
+# modernc.org/sqlite v1.44.1
+## explicit; go 1.24.0
+modernc.org/sqlite
+modernc.org/sqlite/lib
+modernc.org/sqlite/vtab

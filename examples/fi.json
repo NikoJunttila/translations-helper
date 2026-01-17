@@ -1,0 +1,12 @@
+{
+    "app_name": "Käännöseditori",
+    "welcome_message": "Tervetuloa takaisin, {user}!",
+    "navigation": {
+        "home": "Koti",
+        "projects": "Projektit"
+    },
+    "actions": {
+        "save": "Tallenna muutokset",
+        "cancel": "Peruuta"
+    }
+}
