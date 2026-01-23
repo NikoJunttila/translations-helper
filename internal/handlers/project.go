@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 
 	"templui/internal/database"
 	"templui/internal/jsontools"
@@ -54,15 +55,21 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 	// Generate project ID
 	projectID := generateID()
 
+	name := "translation project"
+	if req.Name != "" {
+		name = req.Name
+	}
+
 	// Create project
 	project := &models.Project{
 		ID:        projectID,
-		Name:      req.Name,
+		Name:      name,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	if err := h.db.CreateProject(project); err != nil {
+		log.Error(err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create project"})
 	}
 
