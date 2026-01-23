@@ -47,6 +47,25 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid base file: %v", err)})
 	}
 
+	// If TargetFile not provided, generate an "empty" version with same keys/shape.
+	if req.TargetFile == "" {
+		var base any
+		if err := json.Unmarshal([]byte(req.BaseFile), &base); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": fmt.Sprintf("Invalid base JSON: %v", err),
+			})
+		}
+
+		empty := makeTranslationSkeleton(base)
+
+		b, err := json.MarshalIndent(empty, "", "  ")
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"error": fmt.Sprintf("Failed to build target file: %v", err),
+			})
+		}
+		req.TargetFile = string(b)
+	}
 	// Validate target file
 	if err := jsontools.ValidateTranslationFile([]byte(req.TargetFile)); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Invalid target file: %v", err)})
@@ -324,4 +343,28 @@ func generateAPIKey() (string, string) {
 	keyHash := hex.EncodeToString(hash[:])
 
 	return key, keyHash
+}
+
+// makeTranslationSkeleton preserves the JSON structure but blanks out leaf values.
+// - objects: recurse into fields
+// - arrays: recurse into elements
+// - primitives (string/number/bool/null): becomes "" (empty string)
+func makeTranslationSkeleton(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(t))
+		for k, vv := range t {
+			out[k] = makeTranslationSkeleton(vv)
+		}
+		return out
+	case []any:
+		out := make([]any, len(t))
+		for i := range t {
+			out[i] = makeTranslationSkeleton(t[i])
+		}
+		return out
+	default:
+		// leaf value placeholder for translations
+		return ""
+	}
 }

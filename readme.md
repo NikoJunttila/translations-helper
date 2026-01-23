@@ -1,14 +1,12 @@
 todo
 
-run goose migrations on app start up
-
-allow for creating a new project with just the base language file this way there could be support for new languages which don't have existing files.
-
 add possibility to lock translations behind api key or password.
 
 logs gatheric with loki and alloy.
 
 example page.
+
+add support for goose migrations to libsql
 
 Last task. AI fill in translations for target language???
 
