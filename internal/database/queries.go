@@ -12,22 +12,27 @@ import (
 // CreateProject creates a new project in the database
 func (db *DB) CreateProject(project *models.Project) error {
 	query := `
-		INSERT INTO projects (id, name, created_at, updated_at)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO projects (id, name, is_locked, secret_key_hash, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
 	`
-	_, err := db.conn.Exec(query, project.ID, project.Name, project.CreatedAt, project.UpdatedAt)
+	_, err := db.conn.Exec(query, project.ID, project.Name, project.IsLocked, project.SecretKeyHash, project.CreatedAt, project.UpdatedAt)
 	return err
 }
 
 // GetProject retrieves a project by ID
 func (db *DB) GetProject(id string) (*models.Project, error) {
-	query := `SELECT id, name, created_at, updated_at FROM projects WHERE id = ?`
+	query := `SELECT id, name, is_locked, secret_key_hash, created_at, updated_at FROM projects WHERE id = ?`
 	row := db.conn.QueryRow(query, id)
 
 	var project models.Project
-	err := row.Scan(&project.ID, &project.Name, &project.CreatedAt, &project.UpdatedAt)
+	var secretKeyHash sql.NullString
+	err := row.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &project.CreatedAt, &project.UpdatedAt)
 	if err != nil {
 		return nil, err
+	}
+
+	if secretKeyHash.Valid {
+		project.SecretKeyHash = secretKeyHash.String
 	}
 
 	return &project, nil
@@ -35,7 +40,7 @@ func (db *DB) GetProject(id string) (*models.Project, error) {
 
 // ListProjects retrieves all projects
 func (db *DB) ListProjects(limit int) ([]models.Project, error) {
-	query := `SELECT id, name, created_at, updated_at FROM projects ORDER BY created_at DESC LIMIT ?`
+	query := `SELECT id, name, is_locked, secret_key_hash, created_at, updated_at FROM projects ORDER BY created_at DESC LIMIT ?`
 	rows, err := db.conn.Query(query, limit)
 	if err != nil {
 		return nil, err
@@ -45,8 +50,12 @@ func (db *DB) ListProjects(limit int) ([]models.Project, error) {
 	var projects []models.Project
 	for rows.Next() {
 		var project models.Project
-		if err := rows.Scan(&project.ID, &project.Name, &project.CreatedAt, &project.UpdatedAt); err != nil {
+		var secretKeyHash sql.NullString
+		if err := rows.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &project.CreatedAt, &project.UpdatedAt); err != nil {
 			return nil, err
+		}
+		if secretKeyHash.Valid {
+			project.SecretKeyHash = secretKeyHash.String
 		}
 		projects = append(projects, project)
 	}

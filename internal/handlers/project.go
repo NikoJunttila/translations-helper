@@ -33,6 +33,7 @@ type CreateProjectRequest struct {
 	TargetFile     string `json:"target_file"`     // JSON content as string
 	BaseLanguage   string `json:"base_language"`   // e.g., "en"
 	TargetLanguage string `json:"target_language"` // e.g., "es"
+	IsLocked       bool   `json:"is_locked"`       // Whether to lock project with secret key
 }
 
 // CreateProject handles POST /api/project
@@ -87,6 +88,15 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 		UpdatedAt: time.Now(),
 	}
 
+	// Generate secret key if project is locked
+	var secretKey string
+	if req.IsLocked {
+		var keyHash string
+		secretKey, keyHash = generateAPIKey()
+		project.IsLocked = true
+		project.SecretKeyHash = keyHash
+	}
+
 	if err := h.db.CreateProject(project); err != nil {
 		log.Error(err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create project"})
@@ -133,11 +143,18 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create API key"})
 	}
 
-	return c.JSON(http.StatusCreated, map[string]interface{}{
+	response := map[string]interface{}{
 		"project_id": projectID,
 		"api_key":    apiKey,
 		"url":        fmt.Sprintf("/project/%s/edit?key=%s", projectID, apiKey),
-	})
+	}
+
+	// Include secret key in response if project is locked
+	if req.IsLocked {
+		response["secret_key"] = secretKey
+	}
+
+	return c.JSON(http.StatusCreated, response)
 }
 
 // GetDiff handles GET /api/project/:id/diff

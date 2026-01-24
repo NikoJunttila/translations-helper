@@ -59,6 +59,8 @@ func main() {
 
 	// Editor
 	e.GET("/project/:id/edit", editorHandler.Editor)
+	e.GET("/project/:id/auth", editorHandler.ProjectAuth)
+	e.POST("/project/:id/auth", editorHandler.VerifyProjectKey)
 
 	// API Routes
 	api := e.Group("/api")
