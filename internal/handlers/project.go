@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 
+	"templui/internal/ai"
 	"templui/internal/database"
 	"templui/internal/jsontools"
 	"templui/internal/models"
@@ -337,6 +338,86 @@ func (h *ProjectHandler) ExportFile(c echo.Context) error {
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s.json", targetFile.LanguageCode))
 
 	return c.String(http.StatusOK, targetFile.Content)
+}
+
+// AutoTranslate handles POST /api/project/:id/translate
+func (h *ProjectHandler) AutoTranslate(c echo.Context) error {
+	projectID := c.Param("id")
+
+	// Get files
+	files, err := h.db.GetFilesByProject(projectID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get files"})
+	}
+
+	var baseFile, targetFile *models.TranslationFile
+	for i := range files {
+		if files[i].FileType == "base" {
+			baseFile = &files[i]
+		} else if files[i].FileType == "target" {
+			targetFile = &files[i]
+		}
+	}
+
+	if baseFile == nil || targetFile == nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Files not found"})
+	}
+
+	// Parse JSON
+	baseData, _ := jsontools.ParseJSON([]byte(baseFile.Content))
+	targetData, _ := jsontools.ParseJSON([]byte(targetFile.Content))
+
+	// Flatten
+	baseFlat := jsontools.FlattenJSON(baseData, "")
+	targetFlat := jsontools.FlattenJSON(targetData, "")
+
+	// Identify missing translations
+	missing := make(map[string]string)
+	for k, v := range baseFlat {
+		if targetFlat[k] == "" {
+			missing[k] = v
+		}
+	}
+
+	log.Infof("Found %d missing translations for project %s", len(missing), projectID)
+
+	if len(missing) == 0 {
+		return c.JSON(http.StatusOK, map[string]string{"message": "Nothing to translate"})
+	}
+
+	// Limit to avoid timeouts/costs (optional)
+	if len(missing) > 50 {
+		// Log warning or limit? For now just proceed
+		log.Warnf("Large batch of translations: %d keys", len(missing))
+	}
+
+	// Call AI
+	aiClient := ai.NewOpenAIClient()
+	translations, err := aiClient.Translate(baseFile.LanguageCode, targetFile.LanguageCode, missing)
+	if err != nil {
+		log.Errorf("AI Translation failed: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("AI Translation failed: %v", err)})
+	}
+
+	// Update target flat
+	for k, v := range translations {
+		targetFlat[k] = v
+	}
+
+	// Save back
+	updatedData := jsontools.UnflattenJSON(targetFlat)
+	updatedJSON, _ := json.MarshalIndent(updatedData, "", "  ")
+
+	if err := h.db.UpdateFile(targetFile.ID, string(updatedJSON)); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save translations"})
+	}
+
+	// Return the new list of fields to swap
+	// We want to trigger a refresh of the form or just swap the fields that changed.
+	// Easiest is to respond with HX-Trigger to refresh page or return the updated fields.
+	// Let's reload page for simplicity for now, OR return success and let client handle.
+	c.Response().Header().Set("HX-Refresh", "true")
+	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
 }
 
 // Helper functions

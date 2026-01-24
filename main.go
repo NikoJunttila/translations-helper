@@ -72,6 +72,7 @@ func main() {
 		api.POST("/project", projectHandler.CreateProject)
 		api.GET("/project/:id/diff", projectHandler.GetDiff)
 		api.POST("/project/:id/translations", projectHandler.UpdateTranslation)
+		api.POST("/project/:id/translate", projectHandler.AutoTranslate)
 		api.GET("/project/:id/export", projectHandler.ExportFile)
 
 		// Session/User routes

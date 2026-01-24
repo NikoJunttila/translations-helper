@@ -83,6 +83,14 @@ templ Editor(
 						>
 							Missing Only
 						</button>
+						<button
+							hx-post={ fmt.Sprintf("/api/project/%s/translate", project.ID) }
+							hx-swap="none"
+							class="px-4 py-2 rounded-lg border border-purple-500/50 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 transition flex items-center gap-2"
+						>
+							<span>✨</span>
+							Auto Translate
+						</button>
 						<a
 							href={ templ.SafeURL(fmt.Sprintf("/api/project/%s/export?lang=%s", project.ID, targetLang)) }
 							download
