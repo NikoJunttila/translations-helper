@@ -10,12 +10,10 @@ templ BaseLayout() {
 			<link href="/assets/css/output.css" rel="stylesheet"/>
 			<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
 		</head>
-		<body class="h-full">
-			<nav class="py-2 flex">
-				<a href="/" class="mx-auto">
-					LOGO
-				</a>
-			</nav>
+		<body class="h-full relative">
+			<a href="/" class="mx-auto absolute left-0 top-2">
+				<img src="/favicon.ico" class="w-32 h-32"/>
+			</a>
 			<div class="h-full flex flex-col">
 				<main class="flex-1">
 					{ children... }

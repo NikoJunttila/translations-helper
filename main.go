@@ -47,7 +47,17 @@ func main() {
 	SetupAssetsRoutes(e)
 
 	// ── Silence common browser/dev noise ──────────────────────────────
-	e.GET("/favicon.ico", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	e.GET("/favicon.ico", func(c echo.Context) error {
+		isDevelopment := os.Getenv("GO_ENV") != "production"
+		if isDevelopment {
+			return c.File("assets/favicon.ico")
+		}
+		file, err := assets.Assets.ReadFile("favicon.ico")
+		if err != nil {
+			return c.NoContent(http.StatusNotFound)
+		}
+		return c.Blob(http.StatusOK, "image/x-icon", file)
+	})
 	e.GET("/.well-known/*", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
 	// Initialize handlers

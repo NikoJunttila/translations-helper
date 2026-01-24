@@ -51,7 +51,6 @@ templ Editor(
 								</button>
 							</div>
 						}
-
 						<button
 							onclick="copyLink()"
 							class="px-4 py-2 rounded-lg border border-border hover:border-primary transition flex items-center gap-2"
@@ -86,19 +85,19 @@ templ Editor(
 						<button
 							hx-post={ fmt.Sprintf("/api/project/%s/translate", project.ID) }
 							hx-swap="none"
-                            hx-indicator="#auto-translate-loading"
-                            hx-disabled-elt="this"
+							hx-indicator="#auto-translate-loading"
+							hx-disabled-elt="this"
 							class="relative px-4 py-2 rounded-lg border border-purple-500/50 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<span class="htmx-indicator-hide">✨</span>
-                            <span id="auto-translate-loading" class="htmx-indicator">
-                                <svg class="animate-spin h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </span>
+							<span id="auto-translate-loading" class="htmx-indicator">
+								<svg class="animate-spin h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+							</span>
 							<span class="htmx-indicator-hide">Auto Translate</span>
-                            <span id="auto-translate-loading-text" class="htmx-indicator">Translating...</span>
+							<span id="auto-translate-loading-text" class="htmx-indicator">Translating...</span>
 						</button>
 						<a
 							href={ templ.SafeURL(fmt.Sprintf("/api/project/%s/export?lang=%s", project.ID, targetLang)) }
@@ -109,14 +108,12 @@ templ Editor(
 						</a>
 					</div>
 				</div>
-
 				<!-- Translation Form -->
 				<div class="card p-6">
 					<form id="translation-form" class="space-y-4">
 						for _, key := range sortedKeys {
 							@translationField(key, baseFlat[key], targetFlat[key], project.ID, "")
 						}
-
 						if len(sortedKeys) == 0 {
 							<div class="text-center py-12 text-muted-foreground">
 								<p class="text-lg">✅ All translations complete!</p>
@@ -126,7 +123,6 @@ templ Editor(
 				</div>
 			</div>
 		</div>
-
 		<!-- Secret Key Modal -->
 		if isOwner && project.IsLocked {
 			<dialog id="secret-key-modal" class="p-0 rounded-lg backdrop:bg-black/50 w-full max-w-lg m-4">
@@ -157,7 +153,6 @@ templ Editor(
 				</div>
 			</dialog>
 		}
-
 		<!-- Raw JSON Modal -->
 		<dialog id="raw-json-modal" class="p-0 rounded-lg backdrop:bg-black/50 w-[800px] max-w-full m-4">
 			<div class="p-6 space-y-4">
@@ -165,25 +160,24 @@ templ Editor(
 					<h3 class="text-lg font-bold">Raw JSON</h3>
 					<button onclick="document.getElementById('raw-json-modal').close()" class="text-muted-foreground hover:text-foreground">✕</button>
 				</div>
-				<pre class="bg-muted p-4 rounded-lg overflow-auto max-h-[60vh] text-sm font-mono">{ rawJSON }</pre>
+				<pre class="bg-muted p-4 rounded-lg overflow-auto max-h-[60vh] text-sm font-mono text-gray-200">{ rawJSON }</pre>
 				<div class="flex justify-end">
 					<button onclick="document.getElementById('raw-json-modal').close()" class="px-4 py-2 rounded-lg bg-primary text-primary-foreground">Close</button>
 				</div>
 			</div>
 		</dialog>
-
 		<script>
 			function copyLink() {
 				navigator.clipboard.writeText(window.location.href).then(() => {
-					const icon = document.getElementById('share-icon');
-					const text = document.getElementById('share-text');
-					
+					const icon = document.getElementById("share-icon");
+					const text = document.getElementById("share-text");
+
 					const originalIcon = icon.innerText;
 					const originalText = text.innerText;
-					
-					icon.innerText = '✅';
-					text.innerText = 'Copied!';
-					
+
+					icon.innerText = "✅";
+					text.innerText = "Copied!";
+
 					setTimeout(() => {
 						icon.innerText = originalIcon;
 						text.innerText = originalText;
