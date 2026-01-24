@@ -1,0 +1,91 @@
+package pages
+
+import (
+    "templui/ui/layouts"
+)
+
+templ Example(
+    sortedKeys []string,
+    baseFlat map[string]string,
+    targetFlat map[string]string,
+    showingMissingOnly bool,
+) {
+    @layouts.BaseLayout() {
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto space-y-8">
+                <!-- Explainer Section -->
+                <div class="bg-card border border-border rounded-xl p-8 text-center space-y-4 shadow-sm">
+                    <h1 class="text-4xl font-black bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                        Try It Yourself
+                    </h1>
+                    <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        This is a live demo of the translation editor. 
+                        Go ahead and edit the fields below!
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                        <div class="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            Live validation
+                        </div>
+                        <div class="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
+                             <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            Instant feedback
+                        </div>
+                        <div class="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
+                             <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                            No persistence
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Section -->
+                <div class="bg-card border border-border rounded-xl overflow-hidden shadow-lg">
+                    <div class="border-b border-border bg-muted/30 px-6 py-4 flex justify-between items-center">
+                         <div class="flex items-center gap-3">
+                            <div class="font-mono text-sm bg-background border px-2 py-1 rounded">en</div>
+                            <span class="text-muted-foreground">→</span>
+                            <div class="font-mono text-sm bg-background border px-2 py-1 rounded">es</div>
+                         </div>
+                         <div class="flex gap-2">
+                            <button
+                                hx-get="/example?view=full"
+                                hx-target="body"
+                                hx-push-url="true"
+                                class={ "px-3 py-1 text-xs rounded border transition", templ.KV("bg-primary text-primary-foreground border-primary", !showingMissingOnly), templ.KV("border-border hover:border-primary", showingMissingOnly) }
+                            >
+                                Full View
+                            </button>
+                            <button
+                                hx-get="/example?view=missing"
+                                hx-target="body"
+                                hx-push-url="true"
+                                class={ "px-3 py-1 text-xs rounded border transition", templ.KV("bg-primary text-primary-foreground border-primary", showingMissingOnly), templ.KV("border-border hover:border-primary", !showingMissingOnly) }
+                            >
+                                Missing Only
+                            </button>
+                         </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <form id="translation-form" class="space-y-4">
+                            for _, key := range sortedKeys {
+                                @translationField(key, baseFlat[key], targetFlat[key], "demo-project", "")
+                            }
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Call to Action -->
+                <div class="text-center py-8">
+                     <p class="text-muted-foreground mb-4">Ready to start your own project?</p>
+                     <a href="/" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity gap-2">
+                        Get Started
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                     </a>
+                </div>
+            </div>
+        </div>
+    }
+}

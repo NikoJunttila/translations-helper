@@ -2,10 +2,6 @@ todo
 
 logs gatheric with loki and alloy.
 
-example page.
-
-fix copy secret key button.
-
 Last task. AI fill in translations for target language???
 
 Bug fixes:

@@ -54,10 +54,12 @@ func main() {
 	homeHandler := handlers.NewHomeHandler(db)
 	projectHandler := handlers.NewProjectHandler(db)
 	editorHandler := handlers.NewEditorHandler(db)
+	exampleHandler := handlers.NewExampleHandler()
 
 	// ── Routes ──────────────────────────────────────────────────────
 	// Home
 	e.GET("/", homeHandler.Home)
+	e.GET("/example", exampleHandler.Example)
 
 	// Editor
 	e.GET("/project/:id/edit", editorHandler.Editor)
