@@ -15,6 +15,7 @@ import (
 	"templui/internal/database"
 	"templui/internal/jsontools"
 	"templui/internal/models"
+	"templui/internal/session"
 	"templui/ui/pages"
 )
 
@@ -81,11 +82,13 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 	}
 
 	// Create project
+	sessionToken := session.GetSessionToken(c)
 	project := &models.Project{
-		ID:        projectID,
-		Name:      name,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:           projectID,
+		Name:         name,
+		SessionToken: sessionToken,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	// Generate secret key if project is locked
@@ -349,4 +352,67 @@ func makeTranslationSkeleton(v any) any {
 		// leaf value placeholder for translations
 		return ""
 	}
+}
+
+// GetUserProjects handles GET /api/user/projects
+func (h *ProjectHandler) GetUserProjects(c echo.Context) error {
+	token := session.GetSessionToken(c)
+	if token == "" {
+		return c.JSON(http.StatusOK, []models.Project{})
+	}
+
+	projects, err := h.db.GetProjectsBySession(token, 10)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch projects"})
+	}
+
+	return c.JSON(http.StatusOK, projects)
+}
+
+// GetBaseTemplates handles GET /api/user/templates
+func (h *ProjectHandler) GetBaseTemplates(c echo.Context) error {
+	token := session.GetSessionToken(c)
+	if token == "" {
+		return c.JSON(http.StatusOK, []models.BaseTemplate{})
+	}
+
+	templates, err := h.db.GetBaseTemplatesBySession(token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch templates"})
+	}
+
+	return c.JSON(http.StatusOK, templates)
+}
+
+// GetProjectBaseFile handles GET /api/project/:id/base - retrieves base file for reuse
+func (h *ProjectHandler) GetProjectBaseFile(c echo.Context) error {
+	projectID := c.Param("id")
+	token := session.GetSessionToken(c)
+
+	project, err := h.db.GetProject(projectID)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "Project not found"})
+	}
+
+	// Only allow reuse if user owns the project (session match) or if we implement public reusing later
+	// For now, restrict to session owner for privacy if it's not locked, or just simple session check
+	if project.SessionToken != token {
+		return c.JSON(http.StatusForbidden, map[string]string{"error": "Unauthorized"})
+	}
+
+	files, err := h.db.GetFilesByProject(projectID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get files"})
+	}
+
+	for _, f := range files {
+		if f.FileType == "base" {
+			return c.JSON(http.StatusOK, map[string]string{
+				"content":       f.Content,
+				"language_code": f.LanguageCode,
+			})
+		}
+	}
+
+	return c.JSON(http.StatusNotFound, map[string]string{"error": "Base file not found"})
 }

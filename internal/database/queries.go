@@ -12,21 +12,22 @@ import (
 // CreateProject creates a new project in the database
 func (db *DB) CreateProject(project *models.Project) error {
 	query := `
-		INSERT INTO projects (id, name, is_locked, secret_key_hash, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)
+		INSERT INTO projects (id, name, is_locked, secret_key_hash, session_token, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
-	_, err := db.conn.Exec(query, project.ID, project.Name, project.IsLocked, project.SecretKeyHash, project.CreatedAt, project.UpdatedAt)
+	_, err := db.conn.Exec(query, project.ID, project.Name, project.IsLocked, project.SecretKeyHash, project.SessionToken, project.CreatedAt, project.UpdatedAt)
 	return err
 }
 
 // GetProject retrieves a project by ID
 func (db *DB) GetProject(id string) (*models.Project, error) {
-	query := `SELECT id, name, is_locked, secret_key_hash, created_at, updated_at FROM projects WHERE id = ?`
+	query := `SELECT id, name, is_locked, secret_key_hash, session_token, created_at, updated_at FROM projects WHERE id = ?`
 	row := db.conn.QueryRow(query, id)
 
 	var project models.Project
 	var secretKeyHash sql.NullString
-	err := row.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &project.CreatedAt, &project.UpdatedAt)
+	var sessionToken sql.NullString
+	err := row.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &sessionToken, &project.CreatedAt, &project.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +35,16 @@ func (db *DB) GetProject(id string) (*models.Project, error) {
 	if secretKeyHash.Valid {
 		project.SecretKeyHash = secretKeyHash.String
 	}
+	if sessionToken.Valid {
+		project.SessionToken = sessionToken.String
+	}
 
 	return &project, nil
 }
 
 // ListProjects retrieves all projects
 func (db *DB) ListProjects(limit int) ([]models.Project, error) {
-	query := `SELECT id, name, is_locked, secret_key_hash, created_at, updated_at FROM projects ORDER BY created_at DESC LIMIT ?`
+	query := `SELECT id, name, is_locked, secret_key_hash, session_token, created_at, updated_at FROM projects ORDER BY created_at DESC LIMIT ?`
 	rows, err := db.conn.Query(query, limit)
 	if err != nil {
 		return nil, err
@@ -51,11 +55,15 @@ func (db *DB) ListProjects(limit int) ([]models.Project, error) {
 	for rows.Next() {
 		var project models.Project
 		var secretKeyHash sql.NullString
-		if err := rows.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &project.CreatedAt, &project.UpdatedAt); err != nil {
+		var sessionToken sql.NullString
+		if err := rows.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &sessionToken, &project.CreatedAt, &project.UpdatedAt); err != nil {
 			return nil, err
 		}
 		if secretKeyHash.Valid {
 			project.SecretKeyHash = secretKeyHash.String
+		}
+		if sessionToken.Valid {
+			project.SessionToken = sessionToken.String
 		}
 		projects = append(projects, project)
 	}
@@ -153,4 +161,82 @@ func (db *DB) GetAPIKeyByHash(keyHash string) (*models.APIKey, error) {
 	}
 
 	return &apiKey, nil
+}
+
+// GetProjectsBySession retrieves all projects for a session token
+func (db *DB) GetProjectsBySession(sessionToken string, limit int) ([]models.Project, error) {
+	query := `SELECT id, name, is_locked, secret_key_hash, session_token, created_at, updated_at 
+	          FROM projects 
+	          WHERE session_token = ? 
+	          ORDER BY created_at DESC 
+	          LIMIT ?`
+	rows, err := db.conn.Query(query, sessionToken, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var projects []models.Project
+	for rows.Next() {
+		var project models.Project
+		var secretKeyHash sql.NullString
+		var sessionTokenVal sql.NullString
+		if err := rows.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &sessionTokenVal, &project.CreatedAt, &project.UpdatedAt); err != nil {
+			return nil, err
+		}
+		if secretKeyHash.Valid {
+			project.SecretKeyHash = secretKeyHash.String
+		}
+		if sessionTokenVal.Valid {
+			project.SessionToken = sessionTokenVal.String
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
+}
+
+// CreateBaseTemplate creates a new base template
+func (db *DB) CreateBaseTemplate(template *models.BaseTemplate) error {
+	query := `
+		INSERT INTO base_templates (id, session_token, name, language_code, content, created_at, last_used_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`
+	_, err := db.conn.Exec(query, template.ID, template.SessionToken, template.Name, template.LanguageCode, template.Content, template.CreatedAt, template.LastUsedAt)
+	return err
+}
+
+// GetBaseTemplatesBySession retrieves all base templates for a session
+func (db *DB) GetBaseTemplatesBySession(sessionToken string) ([]models.BaseTemplate, error) {
+	query := `SELECT id, session_token, name, language_code, content, created_at, last_used_at 
+	          FROM base_templates 
+	          WHERE session_token = ? 
+	          ORDER BY last_used_at DESC, created_at DESC`
+	rows, err := db.conn.Query(query, sessionToken)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var templates []models.BaseTemplate
+	for rows.Next() {
+		var template models.BaseTemplate
+		var lastUsedAt sql.NullTime
+		if err := rows.Scan(&template.ID, &template.SessionToken, &template.Name, &template.LanguageCode, &template.Content, &template.CreatedAt, &lastUsedAt); err != nil {
+			return nil, err
+		}
+		if lastUsedAt.Valid {
+			template.LastUsedAt = &lastUsedAt.Time
+		}
+		templates = append(templates, template)
+	}
+
+	return templates, nil
+}
+
+// UpdateTemplateLastUsed updates the last used timestamp for a template
+func (db *DB) UpdateTemplateLastUsed(id string) error {
+	query := `UPDATE base_templates SET last_used_at = ? WHERE id = ?`
+	_, err := db.conn.Exec(query, time.Now(), id)
+	return err
 }

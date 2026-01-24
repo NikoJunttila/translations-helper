@@ -14,6 +14,7 @@ import (
 	"templui/internal/database"
 	"templui/internal/handlers"
 	"templui/internal/metrics"
+	"templui/internal/session"
 	"templui/migrations"
 )
 
@@ -39,6 +40,7 @@ func main() {
 	// ── Global middleware ──────────────────────────────────────────────
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
+	e.Use(session.SessionMiddleware())
 
 	metrics.SetupEcho(e)
 
@@ -69,6 +71,11 @@ func main() {
 		api.GET("/project/:id/diff", projectHandler.GetDiff)
 		api.POST("/project/:id/translations", projectHandler.UpdateTranslation)
 		api.GET("/project/:id/export", projectHandler.ExportFile)
+
+		// Session/User routes
+		api.GET("/user/projects", projectHandler.GetUserProjects)
+		api.GET("/user/templates", projectHandler.GetBaseTemplates)
+		api.GET("/project/:id/base", projectHandler.GetProjectBaseFile)
 	}
 
 	port := os.Getenv("PORT")
