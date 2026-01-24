@@ -18,8 +18,7 @@ func NewHomeHandler(db *database.DB) *HomeHandler {
 
 // Home handles GET /
 func (h *HomeHandler) Home(c echo.Context) error {
-	projects, _ := h.db.ListProjects(10)
-	return render(c, pages.Home(projects))
+	return render(c, pages.Home())
 }
 
 // render is a helper to render templ components

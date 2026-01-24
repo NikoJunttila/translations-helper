@@ -2,11 +2,9 @@ package pages
 
 import (
 	"templui/ui/layouts"
-	"templui/internal/models"
-	"fmt"
 )
 
-templ Home(projects []models.Project) {
+templ Home() {
 	@layouts.BaseLayout() {
 		<div class="container mx-auto px-4 py-8">
 			<div class="max-w-4xl mx-auto space-y-8">
@@ -17,29 +15,26 @@ templ Home(projects []models.Project) {
 						Manage and track missing translations across language files
 					</p>
 				</div>
-
 				<!-- Upload Form -->
 				<div class="card p-6 space-y-6">
 					<h2 class="text-2xl font-semibold">Create New Project</h2>
-					
 					<form id="upload-form" class="space-y-4">
 						<div>
 							<label class="block text-sm font-medium mb-2">Project Name</label>
-							<input 
-								type="text" 
-								name="name" 
-								required
+							<input
+								type="text"
+								name="name"
 								class="w-full px-4 py-2 rounded-lg border border-border bg-background"
 								placeholder="My Translation Project"
 							/>
 						</div>
-
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div>
 								<label class="block text-sm font-medium mb-2">Base Language</label>
-								<input 
-									type="text" 
-									name="base_language" 
+								<input
+									type="text"
+									name="base_language"
+									id="base_language"
 									required
 									class="w-full px-4 py-2 rounded-lg border border-border bg-background"
 									placeholder="en"
@@ -47,19 +42,19 @@ templ Home(projects []models.Project) {
 							</div>
 							<div>
 								<label class="block text-sm font-medium mb-2">Target Language</label>
-								<input 
-									type="text" 
-									name="target_language" 
+								<input
+									type="text"
+									name="target_language"
+									id="target_language"
 									required
 									class="w-full px-4 py-2 rounded-lg border border-border bg-background"
 									placeholder="es"
 								/>
 							</div>
 						</div>
-
 						<div>
 							<label class="block text-sm font-medium mb-2">Base JSON File</label>
-							<div 
+							<div
 								id="base-drop-zone"
 								class="border-2 border-dashed border-border rounded-lg p-4 mb-2 transition hover:border-primary"
 							>
@@ -69,8 +64,8 @@ templ Home(projects []models.Project) {
 									</svg>
 									<p class="mt-2 text-sm text-muted-foreground">Drag and drop your JSON file here, or</p>
 									<label class="mt-2 inline-block">
-										<input 
-											type="file" 
+										<input
+											type="file"
 											id="base-file-input"
 											accept=".json,application/json"
 											class="hidden"
@@ -80,19 +75,18 @@ templ Home(projects []models.Project) {
 									<p class="mt-1 text-xs text-muted-foreground" id="base-file-name"></p>
 								</div>
 							</div>
-							<textarea 
+							<textarea
 								id="base_file"
-								name="base_file" 
+								name="base_file"
 								required
 								rows="8"
-								class="w-full px-4 py-2 rounded-lg border border-border bg-background font-mono text-sm"
+								class="w-full px-4 py-2 rounded-lg border border-border bg-background font-mono text-sm hidden"
 								placeholder='{"welcome": "Welcome", "user": {"profile": {"name": "Name"}}}'
 							></textarea>
 						</div>
-
 						<div>
 							<label class="block text-sm font-medium mb-2">Target JSON File</label>
-							<div 
+							<div
 								id="target-drop-zone"
 								class="border-2 border-dashed border-border rounded-lg p-4 mb-2 transition hover:border-primary"
 							>
@@ -102,8 +96,8 @@ templ Home(projects []models.Project) {
 									</svg>
 									<p class="mt-2 text-sm text-muted-foreground">Drag and drop your JSON file here, or</p>
 									<label class="mt-2 inline-block">
-										<input 
-											type="file" 
+										<input
+											type="file"
 											id="target-file-input"
 											accept=".json,application/json"
 											class="hidden"
@@ -113,67 +107,43 @@ templ Home(projects []models.Project) {
 									<p class="mt-1 text-xs text-muted-foreground" id="target-file-name"></p>
 								</div>
 							</div>
-							<textarea 
+							<textarea
 								id="target_file"
-								name="target_file" 
-								required
+								name="target_file"
 								rows="8"
-								class="w-full px-4 py-2 rounded-lg border border-border bg-background font-mono text-sm"
+								class="w-full px-4 py-2 rounded-lg border border-border bg-background font-mono text-sm hidden"
 								placeholder='{"welcome": "Bienvenido"}'
 							></textarea>
 						</div>
-
-						<button 
+						<button
 							type="submit"
 							class="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition"
 						>
 							Create Project
 						</button>
 					</form>
-
 					<div id="result-message" class="hidden"></div>
 				</div>
-
-				<!-- Recent Projects -->
-				if len(projects) > 0 {
-					<div class="space-y-4">
-						<h2 class="text-2xl font-semibold">Recent Projects</h2>
-						<div class="space-y-2">
-							for _, project := range projects {
-								<a 
-									href={ templ.SafeURL(fmt.Sprintf("/project/%s", project.ID)) }
-									class="block p-4 rounded-lg border border-border hover:border-primary transition"
-								>
-									<div class="flex justify-between items-center">
-										<div>
-											<h3 class="font-semibold">{ project.Name }</h3>
-											<p class="text-sm text-muted-foreground">
-												Created { project.CreatedAt.Format("Jan 2, 2006") }
-											</p>
-										</div>
-										<svg class="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-										</svg>
-									</div>
-								</a>
-							}
-						</div>
-					</div>
-				}
 			</div>
 		</div>
-
 		<script>
 			// File upload handling
-			function setupFileUpload(dropZoneId, fileInputId, textareaId, fileNameId) {
+			function setupFileUpload(
+				dropZoneId,
+				fileInputId,
+				textareaId,
+				fileNameId,
+				languageId,
+			) {
 				const dropZone = document.getElementById(dropZoneId);
 				const fileInput = document.getElementById(fileInputId);
 				const textarea = document.getElementById(textareaId);
 				const fileName = document.getElementById(fileNameId);
+				const langInput = document.getElementById(languageId);
 
 				// Handle file reading
 				function handleFile(file) {
-					if (file && file.type === 'application/json') {
+					if (file && file.type === "application/json") {
 						const reader = new FileReader();
 						reader.onload = (e) => {
 							try {
@@ -182,41 +152,43 @@ templ Home(projects []models.Project) {
 								// Pretty print
 								textarea.value = JSON.stringify(json, null, 2);
 								fileName.textContent = `✓ ${file.name}`;
-								fileName.className = 'mt-1 text-xs text-green-600';
+								fileName.className = "mt-1 text-xs text-green-600";
+								langInput.value = file.name.split(".")[0];
+								// langInput. = lang;
 							} catch (error) {
 								fileName.textContent = `✗ Invalid JSON: ${error.message}`;
-								fileName.className = 'mt-1 text-xs text-destructive';
+								fileName.className = "mt-1 text-xs text-destructive";
 							}
 						};
 						reader.readAsText(file);
 					} else {
-						fileName.textContent = '✗ Please upload a JSON file';
-						fileName.className = 'mt-1 text-xs text-destructive';
+						fileName.textContent = "✗ Please upload a JSON file";
+						fileName.className = "mt-1 text-xs text-destructive";
 					}
 				}
 
 				// File input change
-				fileInput.addEventListener('change', (e) => {
+				fileInput.addEventListener("change", (e) => {
 					if (e.target.files.length > 0) {
 						handleFile(e.target.files[0]);
 					}
 				});
 
 				// Drag and drop
-				dropZone.addEventListener('dragover', (e) => {
+				dropZone.addEventListener("dragover", (e) => {
 					e.preventDefault();
-					dropZone.classList.add('border-primary', 'bg-primary/5');
+					dropZone.classList.add("border-primary", "bg-primary/5");
 				});
 
-				dropZone.addEventListener('dragleave', (e) => {
+				dropZone.addEventListener("dragleave", (e) => {
 					e.preventDefault();
-					dropZone.classList.remove('border-primary', 'bg-primary/5');
+					dropZone.classList.remove("border-primary", "bg-primary/5");
 				});
 
-				dropZone.addEventListener('drop', (e) => {
+				dropZone.addEventListener("drop", (e) => {
 					e.preventDefault();
-					dropZone.classList.remove('border-primary', 'bg-primary/5');
-					
+					dropZone.classList.remove("border-primary", "bg-primary/5");
+
 					if (e.dataTransfer.files.length > 0) {
 						handleFile(e.dataTransfer.files[0]);
 					}
@@ -224,46 +196,63 @@ templ Home(projects []models.Project) {
 			}
 
 			// Setup both file uploads
-			setupFileUpload('base-drop-zone', 'base-file-input', 'base_file', 'base-file-name');
-			setupFileUpload('target-drop-zone', 'target-file-input', 'target_file', 'target-file-name');
+			setupFileUpload(
+				"base-drop-zone",
+				"base-file-input",
+				"base_file",
+				"base-file-name",
+				"base_language",
+			);
+			setupFileUpload(
+				"target-drop-zone",
+				"target-file-input",
+				"target_file",
+				"target-file-name",
+				"target_language",
+			);
 
 			// Form submission
-			document.getElementById('upload-form').addEventListener('submit', async (e) => {
-				e.preventDefault();
-				
-				const formData = new FormData(e.target);
-				const data = {
-					name: formData.get('name'),
-					base_language: formData.get('base_language'),
-					target_language: formData.get('target_language'),
-					base_file: formData.get('base_file'),
-					target_file: formData.get('target_file')
-				};
+			document
+				.getElementById("upload-form")
+				.addEventListener("submit", async (e) => {
+					e.preventDefault();
+					console.log("stuck here");
 
-				try {
-					const response = await fetch('/api/project', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(data)
-					});
+					const formData = new FormData(e.target);
+					const data = {
+						name: formData.get("name"),
+						base_language: formData.get("base_language"),
+						target_language: formData.get("target_language"),
+						base_file: formData.get("base_file"),
+						target_file: formData.get("target_file"),
+					};
 
-					const result = await response.json();
+					try {
+						const response = await fetch("/api/project", {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify(data),
+						});
 
-					if (response.ok) {
-						window.location.href = result.url;
-					} else {
-						const msgEl = document.getElementById('result-message');
-						msgEl.className = 'p-4 rounded-lg bg-destructive/10 text-destructive';
-						msgEl.textContent = result.error || 'Failed to create project';
-						msgEl.classList.remove('hidden');
+						const result = await response.json();
+
+						if (response.ok) {
+							window.location.href = result.url;
+						} else {
+							const msgEl = document.getElementById("result-message");
+							msgEl.className =
+								"p-4 rounded-lg bg-destructive/10 text-destructive";
+							msgEl.textContent = result.error || "Failed to create project";
+							msgEl.classList.remove("hidden");
+						}
+					} catch (error) {
+						const msgEl = document.getElementById("result-message");
+						msgEl.className =
+							"p-4 rounded-lg bg-destructive/10 text-destructive";
+						msgEl.textContent = "Network error: " + error.message;
+						msgEl.classList.remove("hidden");
 					}
-				} catch (error) {
-					const msgEl = document.getElementById('result-message');
-					msgEl.className = 'p-4 rounded-lg bg-destructive/10 text-destructive';
-					msgEl.textContent = 'Network error: ' + error.message;
-					msgEl.classList.remove('hidden');
-				}
-			});
+				});
 		</script>
 	}
 }

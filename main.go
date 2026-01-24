@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -12,6 +13,8 @@ import (
 	"templui/assets"
 	"templui/internal/database"
 	"templui/internal/handlers"
+	"templui/internal/metrics"
+	"templui/migrations"
 )
 
 func main() {
@@ -24,12 +27,20 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+	if err := migrations.RunMigrations(db.GetConn()); err != nil {
+		log.Fatal(err)
+	}
+	if err := metrics.StartMetrics(":8081"); err != nil {
+		log.Fatal(err)
+	}
 
 	e := echo.New()
 
 	// ── Global middleware ──────────────────────────────────────────────
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
+
+	metrics.SetupEcho(e)
 
 	SetupAssetsRoutes(e)
 
