@@ -129,7 +129,7 @@ templ Editor(
 						</p>
 						<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
 							<code class="flex-1 px-3 py-2 bg-background rounded border border-yellow-500/20 font-mono text-sm select-all break-all">{ project.SecretKey }</code>
-							<button onclick={ copyToClipboard(project.SecretKey) } class="px-3 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition flex-shrink-0">
+							<button id="secret-key-copy-btn" onclick={ copyToClipboard(project.SecretKey, "secret-key-copy-btn") } class="px-3 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition flex-shrink-0">
 								Copy
 							</button>
 						</div>
@@ -219,9 +219,9 @@ templ translationField(key, baseValue, targetValue, projectID string, errorMessa
 	</div>
 }
 
-script copyToClipboard(text string) {
+script copyToClipboard(text string, btnId string) {
 	navigator.clipboard.writeText(text).then(() => {
-		const btn = event.target.closest('button');
+		const btn = document.getElementById(btnId);
 		const originalText = btn.innerText;
 		btn.innerText = 'Copied!';
 		btn.classList.add('bg-green-600', 'hover:bg-green-700');
