@@ -12,28 +12,32 @@ import (
 // CreateProject creates a new project in the database
 func (db *DB) CreateProject(project *models.Project) error {
 	query := `
-		INSERT INTO projects (id, name, is_locked, secret_key_hash, session_token, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO projects (id, name, is_locked, secret_key_hash, secret_key, session_token, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
-	_, err := db.conn.Exec(query, project.ID, project.Name, project.IsLocked, project.SecretKeyHash, project.SessionToken, project.CreatedAt, project.UpdatedAt)
+	_, err := db.conn.Exec(query, project.ID, project.Name, project.IsLocked, project.SecretKeyHash, project.SecretKey, project.SessionToken, project.CreatedAt, project.UpdatedAt)
 	return err
 }
 
 // GetProject retrieves a project by ID
 func (db *DB) GetProject(id string) (*models.Project, error) {
-	query := `SELECT id, name, is_locked, secret_key_hash, session_token, created_at, updated_at FROM projects WHERE id = ?`
+	query := `SELECT id, name, is_locked, secret_key_hash, secret_key, session_token, created_at, updated_at FROM projects WHERE id = ?`
 	row := db.conn.QueryRow(query, id)
 
 	var project models.Project
 	var secretKeyHash sql.NullString
+	var secretKey sql.NullString
 	var sessionToken sql.NullString
-	err := row.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &sessionToken, &project.CreatedAt, &project.UpdatedAt)
+	err := row.Scan(&project.ID, &project.Name, &project.IsLocked, &secretKeyHash, &secretKey, &sessionToken, &project.CreatedAt, &project.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 
 	if secretKeyHash.Valid {
 		project.SecretKeyHash = secretKeyHash.String
+	}
+	if secretKey.Valid {
+		project.SecretKey = secretKey.String
 	}
 	if sessionToken.Valid {
 		project.SessionToken = sessionToken.String

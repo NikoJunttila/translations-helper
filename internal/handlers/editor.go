@@ -13,6 +13,7 @@ import (
 	"templui/internal/database"
 	"templui/internal/jsontools"
 	"templui/internal/models"
+	"templui/internal/session"
 	"templui/ui/pages"
 )
 
@@ -97,7 +98,11 @@ func (h *EditorHandler) Editor(c echo.Context) error {
 	rawJSONBytes, _ := json.MarshalIndent(nested, "", "  ")
 	rawJSON := string(rawJSONBytes)
 
-	return render(c, pages.Editor(project, sortedKeys, baseFlat, targetFlat, rawJSON, baseLang, targetLang, viewMode == "missing"))
+	// Check if user is owner
+	sessionToken := session.GetSessionToken(c)
+	isOwner := sessionToken != "" && sessionToken == project.SessionToken
+
+	return render(c, pages.Editor(project, sortedKeys, baseFlat, targetFlat, rawJSON, baseLang, targetLang, viewMode == "missing", isOwner))
 }
 
 // ProjectAuth handles GET /project/:id/auth - shows auth page for locked projects
@@ -159,6 +164,12 @@ func (h *EditorHandler) VerifyProjectKey(c echo.Context) error {
 // isAuthenticated checks if the user is authenticated for a locked project
 func (h *EditorHandler) isAuthenticated(c echo.Context, project *models.Project) bool {
 	projectID := project.ID
+
+	// Check if user is owner (session match)
+	sessionToken := session.GetSessionToken(c)
+	if sessionToken != "" && sessionToken == project.SessionToken {
+		return true
+	}
 
 	// Check cookie
 	cookie, err := c.Cookie("project_auth_" + projectID)

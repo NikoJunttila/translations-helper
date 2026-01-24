@@ -353,7 +353,23 @@ templ Home(projects []models.Project) {
 											<p class="text-sm text-muted-foreground mb-2">Your Secret Key (save this - it won't be shown again!):</p>
 											<div class="flex items-center space-x-2">
 												<code class="flex-1 px-3 py-2 bg-muted rounded font-mono text-sm select-all" id="secret-key-display">${result.secret_key}</code>
-												<button onclick="navigator.clipboard.writeText('${result.secret_key}')" class="px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90">
+												<button 
+													onclick="
+														navigator.clipboard.writeText('${result.secret_key}').then(() => {
+															const btn = this;
+															const originalText = btn.innerText;
+															btn.innerText = 'Copied!';
+															btn.classList.add('bg-green-600', 'hover:bg-green-700');
+															btn.classList.remove('bg-primary', 'hover:opacity-90'); 
+															setTimeout(() => {
+																btn.innerText = originalText;
+																btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+																btn.classList.add('bg-primary', 'hover:opacity-90');
+															}, 2000);
+														})
+													" 
+													class="px-4 py-2 bg-primary text-primary-foreground rounded hover:opacity-90 transition"
+												>
 													Copy
 												</button>
 											</div>

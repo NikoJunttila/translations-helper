@@ -98,6 +98,7 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 		secretKey, keyHash = generateAPIKey()
 		project.IsLocked = true
 		project.SecretKeyHash = keyHash
+		project.SecretKey = secretKey
 	}
 
 	if err := h.db.CreateProject(project); err != nil {
