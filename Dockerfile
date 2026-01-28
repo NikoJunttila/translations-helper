@@ -2,14 +2,19 @@
 FROM golang:1.24-alpine AS build
 WORKDIR /app
 
-# Copy the source code
-COPY . .
-
 # Install build dependencies
 RUN apk add --no-cache gcc musl-dev
 
+# Copy go.mod and go.sum first to leverage Docker cache
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of the source code
+COPY . .
+
 # Build the application
-RUN CGO_ENABLED=1 GOOS=linux go build -o main ./main.go
+# We build the current directory (.) instead of ./main.go for better module resolution
+RUN CGO_ENABLED=1 GOOS=linux go build -o main .
 
 # Deploy-Stage
 FROM alpine:3.20.2
