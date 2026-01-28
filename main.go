@@ -31,7 +31,12 @@ func main() {
 	if err := migrations.RunMigrations(db.GetConn()); err != nil {
 		log.Fatal(err)
 	}
-	if err := metrics.StartMetrics(":8081"); err != nil {
+
+	mPort := os.Getenv("METRICS_PORT")
+	if mPort == "" {
+		log.Fatal("failed to find metrics port")
+	}
+	if err := metrics.StartMetrics(fmt.Sprintf(":%s", mPort)); err != nil {
 		log.Fatal(err)
 	}
 
