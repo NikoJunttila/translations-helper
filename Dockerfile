@@ -17,8 +17,11 @@ RUN go mod download
 COPY . .
 
 # Build the application
-# Use -mod=mod to ignore the vendor directory and use downloaded modules
-RUN CGO_ENABLED=1 GOOS=linux go build -mod=mod -o main .
+# We use GOWORK=off and GO111MODULE=on to ensure strict module resolution
+# Added debug checkpoints to diagnose resolution issues if they persist
+RUN go env && ls -R /app && \
+    GO111MODULE=on GOWORK=off CGO_ENABLED=1 GOOS=linux \
+    go build -mod=readonly -o main .
 
 # Deploy-Stage
 FROM docker.io/alpine:latest
