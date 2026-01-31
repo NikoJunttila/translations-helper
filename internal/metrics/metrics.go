@@ -9,6 +9,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -24,10 +26,17 @@ func StartMetrics(addr string) error {
 	}
 
 	// MeterProvider: exporter as Reader + runtime producer for scheduler histograms.
-	provider := sdkmetric.NewMeterProvider(
-		sdkmetric.WithReader(exp),
+	otel.SetMeterProvider(
+		sdkmetric.NewMeterProvider(
+			sdkmetric.WithReader(exp),
+			sdkmetric.WithResource(
+				resource.NewWithAttributes(
+					semconv.SchemaURL,
+					semconv.ServiceName("translations"),
+				),
+			),
+		),
 	)
-	otel.SetMeterProvider(provider)
 
 	// Start Go runtime metric collection (GC / memstats etc).
 	if err := runtime.Start(
