@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -49,7 +49,7 @@ func StartMetrics(addr string) error {
 	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 
 	go func() {
-		log.Printf("metrics listening on %s/metrics", addr)
+		slog.Info("metrics listening", "addr", addr, "path", "/metrics")
 		_ = http.ListenAndServe(addr, mux)
 	}()
 

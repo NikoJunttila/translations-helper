@@ -1,8 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -21,29 +22,66 @@ import (
 func main() {
 	InitDotEnv()
 
+	// Initialize slog
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	// Initialize database
 	db, err := database.NewDB()
 	if err != nil {
-		fmt.Printf("Failed to connect to database: %v\n", err)
+		slog.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
 	}
 	defer db.Close()
 	if err := migrations.RunMigrations(db.GetConn()); err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to run migrations", "error", err)
+		os.Exit(1)
 	}
 
 	mPort := os.Getenv("METRICS_PORT")
 	if mPort == "" {
-		log.Fatal("failed to find metrics port")
+		slog.Error("failed to find metrics port")
+		os.Exit(1)
 	}
 	if err := metrics.StartMetrics(fmt.Sprintf(":%s", mPort)); err != nil {
-		log.Fatal(err)
+		slog.Error("failed to start metrics", "error", err)
+		os.Exit(1)
 	}
 
 	e := echo.New()
 
 	// ── Global middleware ──────────────────────────────────────────────
-	e.Use(middleware.RequestLogger())
+	// ── Global middleware ──────────────────────────────────────────────
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus:   true,
+		LogURI:      true,
+		LogMethod:   true,
+		LogRemoteIP: true,
+		LogLatency:  true,
+		LogError:    true,
+		HandleError: true, // forwards error to the HTTPErrorHandler
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			if v.Error == nil {
+				slog.LogAttrs(context.Background(), slog.LevelInfo, "request",
+					slog.String("method", v.Method),
+					slog.String("uri", v.URI),
+					slog.Int("status", v.Status),
+					slog.String("remote_ip", v.RemoteIP),
+					slog.Duration("latency", v.Latency),
+				)
+			} else {
+				slog.LogAttrs(context.Background(), slog.LevelError, "request",
+					slog.String("method", v.Method),
+					slog.String("uri", v.URI),
+					slog.Int("status", v.Status),
+					slog.String("remote_ip", v.RemoteIP),
+					slog.Duration("latency", v.Latency),
+					slog.String("err", v.Error.Error()),
+				)
+			}
+			return nil
+		},
+	}))
 	e.Use(middleware.Recover())
 	e.Use(session.SessionMiddleware())
 
@@ -101,8 +139,11 @@ func main() {
 		port = "8090"
 	}
 
-	fmt.Printf("Server is running on http://localhost:%s\n", port)
-	e.Logger.Fatal(e.Start(":" + port))
+	slog.Info("Server is running", "url", fmt.Sprintf("http://localhost:%s", port))
+	e.HideBanner = true
+	if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
+		slog.Error("Server shutdown", "error", err)
+	}
 }
 
 func InitDotEnv() {

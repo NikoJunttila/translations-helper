@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 )
@@ -14,10 +15,10 @@ type OpenAIClient struct {
 }
 
 func NewOpenAIClient() *OpenAIClient {
-	fmt.Println("Creating OpenAI client")
+	slog.Debug("Creating OpenAI client")
 	key := os.Getenv("OPENAI_API_KEY")
 	if key == "" {
-		fmt.Println("WARNING: OPENAI_API_KEY is not set")
+		slog.Warn("OPENAI_API_KEY is not set")
 	} else {
 		// Log masked key for debugging
 		masked := ""
@@ -26,7 +27,7 @@ func NewOpenAIClient() *OpenAIClient {
 		} else {
 			masked = "***"
 		}
-		fmt.Printf("OPENAI_API_KEY is set (%s)\n", masked)
+		slog.Debug("OPENAI_API_KEY verified", "masked_key", masked)
 	}
 	return &OpenAIClient{
 		apiKey: key,
@@ -112,7 +113,7 @@ Preserve any placeholders like {name}, {count}, etc. as is.`, baseLang, targetLa
 	if resp.StatusCode != http.StatusOK {
 		var errBody bytes.Buffer
 		errBody.ReadFrom(resp.Body)
-		fmt.Printf("OpenAI API Error Body: %s\n", errBody.String())
+		slog.Error("OpenAI API error", "status", resp.StatusCode, "body", errBody.String())
 		return nil, fmt.Errorf("openai api error: status %d - %s", resp.StatusCode, errBody.String())
 	}
 

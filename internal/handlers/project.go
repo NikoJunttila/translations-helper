@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"time"
 
+	"log/slog"
+
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 
 	"templui/internal/ai"
 	"templui/internal/database"
@@ -103,7 +104,7 @@ func (h *ProjectHandler) CreateProject(c echo.Context) error {
 	}
 
 	if err := h.db.CreateProject(project); err != nil {
-		log.Error(err)
+		slog.Error("Failed to create project", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create project"})
 	}
 
@@ -379,7 +380,7 @@ func (h *ProjectHandler) AutoTranslate(c echo.Context) error {
 		}
 	}
 
-	log.Infof("Found %d missing translations for project %s", len(missing), projectID)
+	slog.Info("Found missing translations", "count", len(missing), "project_id", projectID)
 
 	if len(missing) == 0 {
 		return c.JSON(http.StatusOK, map[string]string{"message": "Nothing to translate"})
@@ -388,14 +389,14 @@ func (h *ProjectHandler) AutoTranslate(c echo.Context) error {
 	// Limit to avoid timeouts/costs (optional)
 	if len(missing) > 50 {
 		// Log warning or limit? For now just proceed
-		log.Warnf("Large batch of translations: %d keys", len(missing))
+		slog.Warn("Large batch of translations", "count", len(missing))
 	}
 
 	// Call AI
 	aiClient := ai.NewOpenAIClient()
 	translations, err := aiClient.Translate(baseFile.LanguageCode, targetFile.LanguageCode, missing)
 	if err != nil {
-		log.Errorf("AI Translation failed: %v", err)
+		slog.Error("AI Translation failed", "error", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("AI Translation failed: %v", err)})
 	}
 
