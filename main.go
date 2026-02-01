@@ -48,6 +48,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize Tracing
+	otlpEndpoint := os.Getenv("OTLP_ENDPOINT")
+	if otlpEndpoint != "" {
+		shutdown, err := metrics.InitTracer(context.Background(), otlpEndpoint)
+		if err != nil {
+			slog.Error("failed to initialize tracer", "error", err)
+		} else {
+			defer func() {
+				if err := shutdown(context.Background()); err != nil {
+					slog.Error("failed to shutdown tracer", "error", err)
+				}
+			}()
+			slog.Info("Tracer initialized", "endpoint", otlpEndpoint)
+		}
+	} else {
+		slog.Warn("OTLP_ENDPOINT not set, tracing disabled")
+	}
+
 	e := echo.New()
 
 	// ── Global middleware ──────────────────────────────────────────────
