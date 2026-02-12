@@ -60,7 +60,9 @@ func (h *EditorHandler) Editor(c echo.Context) error {
 
 	for i := range files {
 		var data map[string]interface{}
-		json.Unmarshal([]byte(files[i].Content), &data)
+		if err := json.Unmarshal([]byte(files[i].Content), &data); err != nil {
+			return c.String(http.StatusInternalServerError, "Failed to parse file content")
+		}
 
 		if files[i].FileType == "base" {
 			baseFile = &data
@@ -95,7 +97,10 @@ func (h *EditorHandler) Editor(c echo.Context) error {
 
 	// Reconstruct JSON for raw view
 	nested := jsontools.UnflattenJSON(targetFlat)
-	rawJSONBytes, _ := json.MarshalIndent(nested, "", "  ")
+	rawJSONBytes, err := json.MarshalIndent(nested, "", "  ")
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Failed to marshal JSON")
+	}
 	rawJSON := string(rawJSONBytes)
 
 	// Check if user is owner

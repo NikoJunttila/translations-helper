@@ -17,7 +17,9 @@ const (
 // GenerateSessionToken creates a new random session token
 func GenerateSessionToken() string {
 	b := make([]byte, 32)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
 	return hex.EncodeToString(b)
 }
 
@@ -25,7 +27,9 @@ func GenerateSessionToken() string {
 func GetOrCreateSession(c echo.Context) string {
 	// Check if session is already in context (from middleware)
 	if token := c.Get(SessionContextKey); token != nil {
-		return token.(string)
+		if tokenStr, ok := token.(string); ok {
+			return tokenStr
+		}
 	}
 
 	// Try to get from cookie
@@ -67,7 +71,9 @@ func SessionMiddleware() echo.MiddlewareFunc {
 // GetSessionToken gets the session token from the context
 func GetSessionToken(c echo.Context) string {
 	if token := c.Get(SessionContextKey); token != nil {
-		return token.(string)
+		if tokenStr, ok := token.(string); ok {
+			return tokenStr
+		}
 	}
 	return ""
 }

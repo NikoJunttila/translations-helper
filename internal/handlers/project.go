@@ -13,12 +13,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"templui/internal/ai"
 	"templui/internal/database"
 	"templui/internal/jsontools"
 	"templui/internal/models"
 	"templui/internal/session"
-	"templui/ui/pages"
 )
 
 type ProjectHandler struct {
@@ -186,8 +184,14 @@ func (h *ProjectHandler) GetDiff(c echo.Context) error {
 	}
 
 	// Parse JSON files
-	baseData, _ := jsontools.ParseJSON([]byte(baseFile.Content))
-	targetData, _ := jsontools.ParseJSON([]byte(targetFile.Content))
+	baseData, err := jsontools.ParseJSON([]byte(baseFile.Content))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse base file"})
+	}
+	targetData, err := jsontools.ParseJSON([]byte(targetFile.Content))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse target file"})
+	}
 
 	// Flatten
 	baseFlat := jsontools.FlattenJSON(baseData, "")
@@ -224,93 +228,10 @@ func (h *ProjectHandler) UpdateTranslation(c echo.Context) error {
 
 	// INTERCEPT DEMO PROJECT
 	if projectID == "demo-project" {
-		for key, value := range req {
-			// Basic validation simulation for demo
-			// We define a map of base values matching the demo content in ExampleHandler
-			demoBase := map[string]string{
-				"welcome":         "Welcome to our application",
-				"welcome_message": "Welcome back, {user}!",
-				"login":           "Log in",
-				"signup":          "Sign up",
-				"about":           "About Us",
-			}
-
-			baseVal := demoBase[key]
-
-			if err := jsontools.ValidatePlaceholders(baseVal, value); err != nil {
-				c.Response().Header().Set("HX-Retarget", fmt.Sprintf("#field-%s", key))
-				c.Response().Header().Set("HX-Reswap", "outerHTML")
-				// Override hx-select to pick the whole field
-				c.Response().Header().Set("HX-Reselect", fmt.Sprintf("#field-%s", key))
-				return render(c, pages.TranslationField(key, baseVal, value, projectID, err.Error()))
-			}
-
-			return render(c, pages.TranslationField(key, baseVal, value, projectID, ""))
-		}
-		return c.JSON(http.StatusOK, map[string]string{"status": "success"})
+		return h.handleDemoProject(c, req, projectID)
 	}
 
-	// Get target file
-	files, err := h.db.GetFilesByProject(projectID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get files"})
-	}
-
-	var targetFile *models.TranslationFile
-	var baseFlat map[string]string
-	for i := range files {
-		if files[i].FileType == "target" {
-			targetFile = &files[i]
-		} else if files[i].FileType == "base" {
-			// Get base file for rendering
-			var baseData map[string]interface{}
-			json.Unmarshal([]byte(files[i].Content), &baseData)
-			baseFlat = jsontools.FlattenJSON(baseData, "")
-		}
-	}
-
-	if targetFile == nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Target file not found"})
-	}
-
-	// Parse existing content
-	var targetData map[string]interface{}
-	json.Unmarshal([]byte(targetFile.Content), &targetData)
-
-	// Flatten
-	targetFlat := jsontools.FlattenJSON(targetData, "")
-
-	// Update with new values
-	for key, value := range req {
-		// Validate placeholders
-		baseVal := baseFlat[key]
-		if err := jsontools.ValidatePlaceholders(baseVal, value); err != nil {
-			// interpolated string error here. This works but when redoing it we skip this.
-			c.Response().Header().Set("HX-Retarget", fmt.Sprintf("#field-%s", key))
-			c.Response().Header().Set("HX-Reswap", "outerHTML")
-			c.Response().Header().Set("HX-Reselect", fmt.Sprintf("#field-%s", key)) // Override hx-select to pick the whole field
-			return render(c, pages.TranslationField(key, baseVal, value, projectID, err.Error()))
-		}
-		targetFlat[key] = value
-	}
-
-	// Unflatten back
-	updatedData := jsontools.UnflattenJSON(targetFlat)
-
-	// Convert to JSON
-	updatedJSON, _ := json.MarshalIndent(updatedData, "", "  ")
-
-	// Save to database
-	if err := h.db.UpdateFile(targetFile.ID, string(updatedJSON)); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update file"})
-	}
-
-	for key := range req {
-		// can't we just swap the whole input or div around it? this way we can easily replace old error message.
-		return render(c, pages.TranslationField(key, baseFlat[key], targetFlat[key], projectID, ""))
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
+	return h.handleTranslationUpdate(c, projectID, req)
 }
 
 // ExportFile handles GET /api/project/:id/export
@@ -345,93 +266,24 @@ func (h *ProjectHandler) ExportFile(c echo.Context) error {
 func (h *ProjectHandler) AutoTranslate(c echo.Context) error {
 	projectID := c.Param("id")
 
-	// Get files
-	files, err := h.db.GetFilesByProject(projectID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get files"})
-	}
-
-	var baseFile, targetFile *models.TranslationFile
-	for i := range files {
-		if files[i].FileType == "base" {
-			baseFile = &files[i]
-		} else if files[i].FileType == "target" {
-			targetFile = &files[i]
-		}
-	}
-
-	if baseFile == nil || targetFile == nil {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Files not found"})
-	}
-
-	// Parse JSON
-	baseData, _ := jsontools.ParseJSON([]byte(baseFile.Content))
-	targetData, _ := jsontools.ParseJSON([]byte(targetFile.Content))
-
-	// Flatten
-	baseFlat := jsontools.FlattenJSON(baseData, "")
-	targetFlat := jsontools.FlattenJSON(targetData, "")
-
-	// Identify missing translations
-	missing := make(map[string]string)
-	for k, v := range baseFlat {
-		if targetFlat[k] == "" {
-			missing[k] = v
-		}
-	}
-
-	slog.Info("Found missing translations", "count", len(missing), "project_id", projectID)
-
-	if len(missing) == 0 {
-		return c.JSON(http.StatusOK, map[string]string{"message": "Nothing to translate"})
-	}
-
-	// Limit to avoid timeouts/costs (optional)
-	if len(missing) > 50 {
-		// Log warning or limit? For now just proceed
-		slog.Warn("Large batch of translations", "count", len(missing))
-	}
-
-	// Call AI
-	aiClient := ai.NewOpenAIClient()
-	translations, err := aiClient.Translate(baseFile.LanguageCode, targetFile.LanguageCode, missing)
-	if err != nil {
-		slog.Error("AI Translation failed", "error", err)
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("AI Translation failed: %v", err)})
-	}
-
-	// Update target flat
-	for k, v := range translations {
-		targetFlat[k] = v
-	}
-
-	// Save back
-	updatedData := jsontools.UnflattenJSON(targetFlat)
-	updatedJSON, _ := json.MarshalIndent(updatedData, "", "  ")
-
-	if err := h.db.UpdateFile(targetFile.ID, string(updatedJSON)); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save translations"})
-	}
-
-	// Return the new list of fields to swap
-	// We want to trigger a refresh of the form or just swap the fields that changed.
-	// Easiest is to respond with HX-Trigger to refresh page or return the updated fields.
-	// Let's reload page for simplicity for now, OR return success and let client handle.
-	c.Response().Header().Set("HX-Refresh", "true")
-	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
+	return h.performAutoTranslate(c, projectID)
 }
 
 // Helper functions
 
 func generateID() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		return "" // or panic?
+	}
 	return hex.EncodeToString(b)
 }
 
 func generateAPIKey() (string, string) {
 	b := make([]byte, 32)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		return "", ""
+	}
 	key := hex.EncodeToString(b)
 
 	// Hash the key for storage

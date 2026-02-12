@@ -92,7 +92,14 @@ func StartMetrics(addr string) error {
 
 	go func() {
 		slog.Info("metrics listening", "addr", addr, "path", "/metrics")
-		_ = http.ListenAndServe(addr, mux)
+		server := &http.Server{
+			Addr:              addr,
+			Handler:           mux,
+			ReadHeaderTimeout: 3 * time.Second,
+		}
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("server failed", "error", err)
+		}
 	}()
 
 	return nil

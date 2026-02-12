@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 
@@ -20,7 +22,10 @@ func NewHomeHandler(db *database.DB) *HomeHandler {
 // Home handles GET /
 func (h *HomeHandler) Home(c echo.Context) error {
 	token := session.GetOrCreateSession(c)
-	projects, _ := h.db.GetProjectsBySession(token, 10)
+	projects, err := h.db.GetProjectsBySession(token, 10)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Failed to fetch projects")
+	}
 	return render(c, pages.Home(projects))
 }
 

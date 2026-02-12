@@ -2,11 +2,14 @@ package ai
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+
+	"templui/utils"
 )
 
 type OpenAIClient struct {
@@ -21,13 +24,11 @@ func NewOpenAIClient() *OpenAIClient {
 		slog.Warn("OPENAI_API_KEY is not set")
 	} else {
 		// Log masked key for debugging
-		masked := ""
+		masked := "***"
 		if len(key) > 8 {
 			masked = key[:4] + "..." + key[len(key)-4:]
-		} else {
-			masked = "***"
 		}
-		slog.Debug("OPENAI_API_KEY verified", "masked_key", masked)
+		slog.Debug("OPENAI_API_KEY verified", "masked_key", utils.SanitizeLog(masked))
 	}
 	return &OpenAIClient{
 		apiKey: key,
@@ -96,7 +97,7 @@ Preserve any placeholders like {name}, {count}, etc. as is.`, baseLang, targetLa
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(context.Background(), "POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -104,17 +105,24 @@ Preserve any placeholders like {name}, {count}, etc. as is.`, baseLang, targetLa
 	req.Header.Set("Authorization", "Bearer "+g.apiKey)
 	req.Header.Set("Content-Type", "application/json")
 
+	// #nosec G704 -- The URL is hardcoded and safe
 	resp, err := g.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			slog.Error("failed to close response body", "error", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		var errBody bytes.Buffer
-		errBody.ReadFrom(resp.Body)
-		slog.Error("OpenAI API error", "status", resp.StatusCode, "body", errBody.String())
-		return nil, fmt.Errorf("openai api error: status %d - %s", resp.StatusCode, errBody.String())
+		if _, err := errBody.ReadFrom(resp.Body); err != nil {
+			slog.Error("failed to read error body", "error", err)
+		}
+		slog.Error("OpenAI API error", "status", resp.StatusCode, "body", utils.SanitizeLog(errBody.String()))
+		return nil, fmt.Errorf("openai api error: status %d - %s", resp.StatusCode, utils.SanitizeLog(errBody.String()))
 	}
 
 	var chatResp ChatResponse

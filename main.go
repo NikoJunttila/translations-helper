@@ -17,6 +17,7 @@ import (
 	"templui/internal/metrics"
 	"templui/internal/session"
 	"templui/migrations"
+	"templui/utils"
 )
 
 func main() {
@@ -32,7 +33,11 @@ func main() {
 		slog.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			slog.Error("Failed to close database", "error", err)
+		}
+	}()
 	if err := migrations.RunMigrations(db.GetConn()); err != nil {
 		slog.Error("Failed to run migrations", "error", err)
 		os.Exit(1)
@@ -60,7 +65,7 @@ func main() {
 					slog.Error("failed to shutdown tracer", "error", err)
 				}
 			}()
-			slog.Info("Tracer initialized", "endpoint", otlpEndpoint)
+			slog.Info("Tracer initialized", "endpoint", utils.SanitizeLog(otlpEndpoint))
 		}
 	} else {
 		slog.Warn("OTLP_ENDPOINT not set, tracing disabled")
@@ -157,7 +162,7 @@ func main() {
 		port = "8090"
 	}
 
-	slog.Info("Server is running", "url", fmt.Sprintf("http://localhost:%s", port))
+	slog.Info("Server is running", "url", fmt.Sprintf("http://localhost:%s", utils.SanitizeLog(port)))
 	e.HideBanner = true
 	if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
 		slog.Error("Server shutdown", "error", err)

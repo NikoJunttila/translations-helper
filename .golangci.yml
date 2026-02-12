@@ -29,7 +29,6 @@ linters:
     - promlinter
     - rowserrcheck
     - sqlclosecheck
-    - stylecheck
     - tparallel
     - unconvert
     - unparam

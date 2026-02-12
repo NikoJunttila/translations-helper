@@ -9,8 +9,16 @@ import (
 
 	"github.com/a-h/templ"
 
+	"strings"
+
 	twmerge "github.com/Oudwins/tailwind-merge-go"
 )
+
+// SanitizeLog removes newlines and carriage returns to prevent log injection
+func SanitizeLog(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	return strings.ReplaceAll(s, "\r", "")
+}
 
 // TwMerge combines Tailwind classes and resolves conflicts.
 // Example: "bg-red-500 hover:bg-blue-500", "bg-green-500" → "hover:bg-blue-500 bg-green-500"

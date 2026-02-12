@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -53,7 +54,11 @@ func (db *DB) ListProjects(limit int) ([]models.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("Failed to close rows", "error", err)
+		}
+	}()
 
 	var projects []models.Project
 	for rows.Next() {
@@ -70,6 +75,10 @@ func (db *DB) ListProjects(limit int) ([]models.Project, error) {
 			project.SessionToken = sessionToken.String
 		}
 		projects = append(projects, project)
+		projects = append(projects, project)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return projects, nil
@@ -97,8 +106,8 @@ func (db *DB) GetFile(id string) (*models.TranslationFile, error) {
 	}
 
 	// Parse content into ParsedData
-	if err := json.Unmarshal([]byte(file.Content), &file.ParsedData); err == nil {
-		// Successfully parsed
+	if err := json.Unmarshal([]byte(file.Content), &file.ParsedData); err != nil {
+		slog.Warn("Failed to parse file content", "id", file.ID, "error", err)
 	}
 
 	return &file, nil
@@ -111,7 +120,11 @@ func (db *DB) GetFilesByProject(projectID string) ([]models.TranslationFile, err
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("Failed to close rows", "error", err)
+		}
+	}()
 
 	var files []models.TranslationFile
 	for rows.Next() {
@@ -120,8 +133,13 @@ func (db *DB) GetFilesByProject(projectID string) ([]models.TranslationFile, err
 			return nil, err
 		}
 		// Parse content
-		json.Unmarshal([]byte(file.Content), &file.ParsedData)
+		if err := json.Unmarshal([]byte(file.Content), &file.ParsedData); err != nil {
+			slog.Warn("Failed to parse file content", "id", file.ID, "error", err)
+		}
 		files = append(files, file)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return files, nil
@@ -178,7 +196,11 @@ func (db *DB) GetProjectsBySession(sessionToken string, limit int) ([]models.Pro
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("Failed to close rows", "error", err)
+		}
+	}()
 
 	var projects []models.Project
 	for rows.Next() {
@@ -195,6 +217,9 @@ func (db *DB) GetProjectsBySession(sessionToken string, limit int) ([]models.Pro
 			project.SessionToken = sessionTokenVal.String
 		}
 		projects = append(projects, project)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return projects, nil
@@ -220,7 +245,11 @@ func (db *DB) GetBaseTemplatesBySession(sessionToken string) ([]models.BaseTempl
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			slog.Warn("Failed to close rows", "error", err)
+		}
+	}()
 
 	var templates []models.BaseTemplate
 	for rows.Next() {
@@ -233,6 +262,12 @@ func (db *DB) GetBaseTemplatesBySession(sessionToken string) ([]models.BaseTempl
 			template.LastUsedAt = &lastUsedAt.Time
 		}
 		templates = append(templates, template)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return templates, nil

@@ -27,8 +27,12 @@ func flattenHelper(data map[string]interface{}, prefix string, result map[string
 			flattenHelper(v, fullKey, result)
 		case []interface{}:
 			// Convert arrays to JSON string
-			jsonBytes, _ := json.Marshal(v)
-			result[fullKey] = string(jsonBytes)
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				result[fullKey] = fmt.Sprintf("error: %v", err)
+			} else {
+				result[fullKey] = string(jsonBytes)
+			}
 		default:
 			// Store primitive values as strings
 			result[fullKey] = fmt.Sprintf("%v", v)

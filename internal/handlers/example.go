@@ -36,7 +36,7 @@ func (h *ExampleHandler) Example(c echo.Context) error {
 	showingMissingOnly := view == "missing"
 
 	// Sort keys for consistent order
-	var keys []string
+	var keys = make([]string, 0, len(base))
 	for k := range base {
 		if showingMissingOnly && target[k] != "" {
 			continue
