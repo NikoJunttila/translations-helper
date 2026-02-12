@@ -65,7 +65,7 @@ func main() {
 					slog.Error("failed to shutdown tracer", "error", err)
 				}
 			}()
-			slog.Info("Tracer initialized", "endpoint", utils.SanitizeLog(otlpEndpoint))
+			slog.Info("Tracer initialized", "endpoint", utils.SanitizeLog(otlpEndpoint)) //nosec G706
 		}
 	} else {
 		slog.Warn("OTLP_ENDPOINT not set, tracing disabled")
@@ -162,7 +162,7 @@ func main() {
 		port = "8090"
 	}
 
-	slog.Info("Server is running", "url", fmt.Sprintf("http://localhost:%s", utils.SanitizeLog(port)))
+	slog.Info("Server is running", "url", fmt.Sprintf("http://localhost:%s", utils.SanitizeLog(port))) //nosec G706
 	e.HideBanner = true
 	if err := e.Start(":" + port); err != nil && err != http.ErrServerClosed {
 		slog.Error("Server shutdown", "error", err)

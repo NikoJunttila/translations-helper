@@ -28,7 +28,7 @@ func NewOpenAIClient() *OpenAIClient {
 		if len(key) > 8 {
 			masked = key[:4] + "..." + key[len(key)-4:]
 		}
-		slog.Debug("OPENAI_API_KEY verified", "masked_key", utils.SanitizeLog(masked))
+		slog.Debug("OPENAI_API_KEY verified", "masked_key", utils.SanitizeLog(masked)) //nosec G706
 	}
 	return &OpenAIClient{
 		apiKey: key,
@@ -121,7 +121,7 @@ Preserve any placeholders like {name}, {count}, etc. as is.`, baseLang, targetLa
 		if _, err := errBody.ReadFrom(resp.Body); err != nil {
 			slog.Error("failed to read error body", "error", err)
 		}
-		slog.Error("OpenAI API error", "status", resp.StatusCode, "body", utils.SanitizeLog(errBody.String()))
+		slog.Error("OpenAI API error", "status", resp.StatusCode, "body", utils.SanitizeLog(errBody.String())) //nosec G706
 		return nil, fmt.Errorf("openai api error: status %d - %s", resp.StatusCode, utils.SanitizeLog(errBody.String()))
 	}
 
