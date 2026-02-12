@@ -1,9 +1,6 @@
 # Build-Stage
-FROM golang:1.24-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS build
 WORKDIR /app
-
-# Install build dependencies
-RUN apk add --no-cache gcc musl-dev
 
 # Force Go module mode
 ENV GO111MODULE=on
@@ -20,7 +17,9 @@ COPY . .
 RUN go tool templ generate
 
 # Build the application
-RUN GO111MODULE=on GOWORK=off CGO_ENABLED=1 GOOS=linux \
+# Use TARGETOS and TARGETARCH for cross-compilation
+ARG TARGETOS TARGETARCH
+RUN GO111MODULE=on GOWORK=off CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -mod=readonly -o main .
 
 # Deploy-Stage
