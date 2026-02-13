@@ -168,7 +168,6 @@ func main() {
 		port = 8090
 	}
 
-	slog.Info("Server is running", "url", fmt.Sprintf("http://localhost:%d", port))
 	e.HideBanner = true
 	if err := e.Start(fmt.Sprintf(":%d", port)); err != nil && err != http.ErrServerClosed {
 		slog.Error("Server shutdown", "error", err)

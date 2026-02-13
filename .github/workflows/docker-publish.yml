@@ -72,7 +72,7 @@ jobs:
       - name: Delete older images
         uses: actions/delete-package-versions@v5
         with:
-          package-name: 'templui'
+          package-name: 'translations-helper'
           package-type: 'container'
           min-versions-to-keep: 10
           delete-only-untagged-versions: 'true'
