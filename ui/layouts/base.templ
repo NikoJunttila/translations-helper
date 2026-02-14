@@ -1,5 +1,15 @@
 package layouts
 
+import "os"
+
+func VersionText() string {
+	version := os.Getenv("VERSION")
+	if version != "" {
+		return version
+	}
+	return "development"
+}
+
 templ BaseLayout() {
 	<!DOCTYPE html>
 	<html lang="en" class="h-full dark">
@@ -22,6 +32,10 @@ templ BaseLayout() {
 				<main class="flex-1">
 					{ children... }
 				</main>
+				<footer class="p-4 text-center text-gray-400 text-sm">
+					<p>Version: { VersionText() } </p>
+					<a class="mt-2 text-blue-500" href="https://github.com/NikoJunttila/translations-helper" target="_blank">Github</a>
+				</footer>
 			</div>
 		</body>
 	</html>

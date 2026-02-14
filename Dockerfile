@@ -36,8 +36,15 @@ ENV GO_ENV=production
 # Copy the binary from the build stage
 COPY --from=build /app/main .
 
+# Set version from build arg
+ARG VERSION
+ENV VERSION=${VERSION}
+
 # Expose the port your application runs on
 EXPOSE 8090
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8090/health || exit 1
 
 # Command to run the application
 CMD ["./main"]

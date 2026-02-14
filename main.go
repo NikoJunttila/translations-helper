@@ -137,6 +137,9 @@ func main() {
 	// Home
 	e.GET("/", homeHandler.Home)
 	e.GET("/example", exampleHandler.Example)
+	e.GET("/health", func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	})
 
 	// Editor
 	e.GET("/project/:id/edit", editorHandler.Editor)
