@@ -35,17 +35,47 @@ Logs and metrics are gathered with Alloy and sent to loki & prometheus.
 
 ## Versioning
 
-- bump versions by patch (0.0.1) each commit to master if no flags defined. 
+This project uses automatic semantic versioning powered by anothrNick/github-tag-action
+.
 
-How Version Bumping Works
-📍 Manual (Commit Message-Driven)
+By default:
 
-This action reads your commit messages and bumps versions based on flags inside them:
+Every merge/push to main bumps the patch version (0.0.x)
 
-#major → major version bump
+Unless a version flag is explicitly defined in the commit message
 
-#minor → minor version bump
+🔢 How Version Bumping Works
 
-#patch → patch version bump
+The action determines the next version based on commit message flags.
 
-#none → no bump
+If no flag is found, it falls back to the configured default (usually patch or minor depending on your setup).
+
+📍 Manual (Commit Message–Driven)
+
+You can control the version bump by including one of the following keywords in your commit message:
+
+Flag	Result	Example
+#major	1.2.3 → 2.0.0	Breaking API changes
+#minor	1.2.3 → 1.3.0	New backwards-compatible feature
+#patch	1.2.3 → 1.2.4	Bug fix
+#none	No new tag created	Docs / CI changes
+🧾 Example Commit Messages
+git commit -m "feat: add OAuth login #minor"
+
+
+→ bumps 1.4.2 → 1.5.0
+
+git commit -m "fix: handle nil pointer panic #patch"
+
+
+→ bumps 1.4.2 → 1.4.3
+
+git commit -m "refactor!: rewrite auth system #major"
+
+
+→ bumps 1.4.2 → 2.0.0
+
+git commit -m "docs: update README #none"
+
+
+→ no new version tag
