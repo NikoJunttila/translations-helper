@@ -138,7 +138,7 @@ func main() {
 	e.GET("/", homeHandler.Home)
 	e.GET("/example", exampleHandler.Example)
 	e.GET("/health", func(c echo.Context) error {
-		return c.NoContent(http.StatusOK)
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
 
 	// Editor

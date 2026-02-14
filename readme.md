@@ -26,9 +26,26 @@ OPENAI_API_KEY=sk-...
 
 ## Logs & Metrics & Monitoring
 
-Logs are gathered with Loki and Alloy.
-Metrics with prometheus.
+Metrics are on new port with opentel compatiple style.
+Logs and metrics are gathered with Alloy and sent to loki & prometheus.
 
 ## Future Work / Todo
 
 - [ ] Fix UI glitch: validation error persists after correction until reload.
+
+## Versioning
+
+- bump versions by patch (0.0.1) each commit to master if no flags defined. 
+
+How Version Bumping Works
+📍 Manual (Commit Message-Driven)
+
+This action reads your commit messages and bumps versions based on flags inside them:
+
+#major → major version bump
+
+#minor → minor version bump
+
+#patch → patch version bump
+
+#none → no bump
