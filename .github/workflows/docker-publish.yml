@@ -1,3 +1,4 @@
+---
 name: Build and Push Docker Image
 
 on:
@@ -67,7 +68,6 @@ jobs:
           build-args: |
             VERSION=${{ steps.tag_action.outputs.new_tag }}
           labels: ${{ steps.meta.outputs.labels }}
-          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
@@ -91,4 +91,3 @@ jobs:
           package-type: 'container'
           min-versions-to-keep: 10
           delete-only-untagged-versions: 'true'
-
